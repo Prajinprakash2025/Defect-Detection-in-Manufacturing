@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Alerts{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">System Alerts</h1>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Inspection</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alerts %}
+                    <tr class="{% if alert.status == 'Unread' %}table-warning{% endif %}">
+                        <td>#{{ alert.id }}</td>
+                        <td>
+                            <a href="#">Inspection #{{ alert.inspection.id }}</a>
+                        </td>
+                        <td>{{ alert.message }}</td>
+                        <td>
+                            {% if alert.alert_status == 'Unread' %}
+                            <span class="badge bg-warning text-dark">Unread</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Read</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ alert.created_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">No alerts found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

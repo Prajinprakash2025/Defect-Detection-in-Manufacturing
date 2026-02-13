@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row g-3 my-2">
+        <div class="col-md-3">
+            <a href="{% url 'inspection_list' %}" class="text-decoration-none text-dark">
+                <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                    <div>
+                        <h3 class="fs-2">{{ total_inspections }}</h3>
+                        <p class="fs-5">Total Inspections</p>
+                    </div>
+                    <i class="fas fa-clipboard-list fs-1 primary-text border rounded-full secondary-bg p-3"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="{% url 'inspection_list' %}?status=Defective" class="text-decoration-none text-dark">
+                <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                    <div>
+                        <h3 class="fs-2">{{ total_defects }}</h3>
+                        <p class="fs-5">Defects Found</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle fs-1 text-danger border rounded-full secondary-bg p-3"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="{% url 'inspection_list' %}" class="text-decoration-none text-dark">
+                <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                    <div>
+                        <h3 class="fs-2">{{ defect_rate }}%</h3>
+                        <p class="fs-5">Defect Rate</p>
+                    </div>
+                    <i class="fas fa-chart-line fs-1 primary-text border rounded-full secondary-bg p-3"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="{% url 'alert_list' %}" class="text-decoration-none text-dark">
+                <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                    <div>
+                        <h3 class="fs-2">{{ pending_alerts }}</h3>
+                        <p class="fs-5">Pending Alerts</p>
+                    </div>
+                    <i class="fas fa-bell fs-1 text-warning border rounded-full secondary-bg p-3"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- Total Inspectors (Admin Only) -->
+        {% if user.role == 'admin' %}
+        <div class="col-md-3">
+            <a href="{% url 'user_management' %}" class="text-decoration-none text-dark">
+                <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                    <div>
+                        <h3 class="fs-2">{{ total_inspectors }}</h3>
+                        <p class="fs-5">Inspectors</p>
+                    </div>
+                    <i class="fas fa-users fs-1 primary-text border rounded-full secondary-bg p-3"></i>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Insights Row (Admin & Manager Only) -->
+    {% if user.role == 'admin' or user.role == 'manager' %}
+    <div class="row g-3 my-2">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-left-primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 border-end">
+                            <h5 class="text-primary"><i class="fas fa-chart-line me-2"></i>System Insights</h5>
+                            <p class="mb-0">Defect Trend (7 Days):
+                                <span
+                                    class="fw-bold {% if trend_direction == 'Increased' %}text-danger{% elif trend_direction == 'Decreased' %}text-success{% else %}text-muted{% endif %}">
+                                    {{ trend_direction }} by {{ trend_percent }}%
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-danger"><i class="fas fa-exclamation-circle me-2"></i>Top Problematic Batch
+                            </h5>
+                            <p class="mb-0">
+                                {% if top_batch %}
+                                Batch <strong>{{ top_batch.batch__batch_number }}</strong> has {{ top_batch.defect_count
+                                }} defects.
+                                {% else %}
+                                No defective batches found.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Charts Row 1 -->
+    <div class="row my-5">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="fs-5 mb-0">Monthly Inspection Trends</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="fs-5 mb-0">Defect Severity</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="severityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row my-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="fs-5 mb-0">Defect Types</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="dtypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="fs-5 mb-0">Recent Inspections</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table bg-white rounded shadow-sm  table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col" width="50">#</th>
+                                <th scope="col">Batch</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inspection in recent_inspections %}
+                            <tr>
+                                <th scope="row">{{ inspection.id }}</th>
+                                <td>{{ inspection.batch.batch_number }}</td>
+                                <td>
+                                    {% if inspection.status == 'Defective' %}
+                                    <span class="badge bg-danger">Defective</span>
+                                    {% else %}
+                                    <span class="badge bg-success">OK</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ inspection.timestamp|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No inspections found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Trends Chart
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: {{ trend_labels| safe }},
+        datasets: [{
+            label: 'Total Inspections',
+            data: {{ trend_data_total| safe }},
+        borderColor: '#009d63',
+        tension: 0.1,
+        fill: false
+            }, {
+            label: 'Defective',
+            data: {{ trend_data_defective| safe }},
+        borderColor: '#dc3545',
+        tension: 0.1,
+        fill: false
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // Severity Chart
+    const sevCtx = document.getElementById('severityChart').getContext('2d');
+    new Chart(sevCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ severity_labels| safe }},
+        datasets: [{
+            data: {{ severity_data| safe }},
+        backgroundColor: ['#ffc107', '#fd7e14', '#dc3545']
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // Defect Type Chart
+    const typeCtx = document.getElementById('dtypeChart').getContext('2d');
+    new Chart(typeCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ dtype_labels| safe }},
+        datasets: [{
+            label: 'Defects',
+            data: {{ dtype_data| safe }},
+        backgroundColor: '#009d63'
+            }]
+        },
+        options: { responsive: true }
+    });
+</script>
+{% endblock %}

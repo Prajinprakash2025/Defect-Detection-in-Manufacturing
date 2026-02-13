@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inspection Detail{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <!-- Image & Visualization Column -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Inspection Image</h5>
+            </div>
+            <div class="card-body text-center position-relative">
+                {% if inspection.image %}
+                <div class="position-relative d-inline-block">
+                    <img src="{{ inspection.image.url }}" alt="Inspection" class="img-fluid rounded shadow-sm"
+                        style="max-height: 600px;">
+
+                    {% if inspection.status == 'Defective' %}
+                    <!-- Simulated Bounding Box Overlay for Visualization -->
+                    <div class="bounding-box-overlay"></div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="alert alert-secondary">No image available</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Raw AI Response (Collapsible) -->
+        <div class="card shadow-sm">
+            <div class="card-header" id="headingJson">
+                <button class="btn btn-link w-100 text-start text-decoration-none collapsed" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseJson" aria-expanded="false">
+                    <i class="fas fa-code me-2"></i>View Raw AI Response
+                </button>
+            </div>
+            <div id="collapseJson" class="collapse">
+                <div class="card-body bg-light">
+                    <pre class="small text-muted mb-0"
+                        style="max-height: 300px; overflow-y: auto;">{{ inspection.raw_prediction_json|default:"No Raw Data Available" }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- details & Stats Column -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Inspection Results</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4 text-center">
+                    <h1 class="display-6 
+                        {% if inspection.status == 'Defective' %}text-danger{% else %}text-success{% endif %}">
+                        {{ inspection.status }}
+                    </h1>
+                    <p class="lead text-muted">{{ inspection.prediction_label|default:"Unknown" }}</p>
+
+                    {% if user.role == 'admin' %}
+                    <form action="{% url 'verify_result' inspection.pk %}" method="post" class="mt-3">
+                        {% csrf_token %}
+                        {% if inspection.status == 'Non-Defective' %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm shadow-sm" title="Mark as Defective">
+                            <i class="fas fa-times-circle me-2"></i>Verify: Mark as Defective
+                        </button>
+                        {% elif inspection.status == 'Defective' %}
+                        <button type="submit" class="btn btn-outline-success btn-sm shadow-sm"
+                            title="Mark as Non-Defective">
+                            <i class="fas fa-check-circle me-2"></i>Verify: Mark as Non-Defective
+                        </button>
+                        {% endif %}
+                    </form>
+                    {% endif %}
+                </div>
+
+                <hr>
+
+                <!-- Confidence Score -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Confidence Score</span>
+                        <span class="fw-bold">{{ inspection.confidence_score|floatformat:2 }}</span>
+                    </div>
+                    {% with score=inspection.confidence_score|default:0 %}
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar 
+                            {% if score > 0.8 %}bg-success
+                            {% elif score > 0.6 %}bg-warning
+                            {% else %}bg-danger{% endif %}" role="progressbar"
+                            style="width: {% widthratio score 1 100 %}%;" aria-valuenow="{% widthratio score 1 100 %}"
+                            aria-valuemin="0" aria-valuemax="100">
+                            {% widthratio score 1 100 %}%
+                        </div>
+                    </div>
+                    {% endwith %}
+                </div>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">ID</span>
+                        <span>#{{ inspection.id }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Batch</span>
+                        <span class="text-end">
+                            <div class="fw-bold">{{ inspection.batch.batch_number }}</div>
+                            <small>{{ inspection.batch.product.name }}</small>
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Upload Date</span>
+                        <span>{{ inspection.timestamp|date:"M d, Y H:i" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Inspector</span>
+                        <span>{{ inspection.uploaded_by.username }}</span>
+                    </li>
+                </ul>
+
+                {% if inspection.defects.exists %}
+                <div class="mt-4">
+                    <h6>Detected Defects</h6>
+                    {% for defect in inspection.defects.all %}
+                    <span class="badge bg-danger mb-1">{{ defect.defect_type }} ({{ defect.severity }})</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'inspection_list' %}" class="btn btn-outline-secondary">Back to History</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Simulated Bounding Box Overlay for Demo */
+    .bounding-box-overlay {
+        position: absolute;
+        top: 20%;
+        left: 20%;
+        width: 60%;
+        height: 60%;
+        border: 3px solid red;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        pointer-events: none;
+        /* Allow clicking through */
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+        }
+    }
+</style>
+{% endblock %}

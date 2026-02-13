@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload Inspection{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h4 class="mb-0">Run New Inspection</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+
+                    {% if not form.batch.field.queryset.exists %}
+                    <div class="alert alert-warning">
+                        No batches found. <a href="{% url 'create_batch' %}">Create a Batch</a> before inspection.
+                    </div>
+                    {% else %}
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-primary" type="submit" id="analyzeBtn">
+                            <i class="fas fa-microscope me-2"></i>Analyze Image
+                        </button>
+                        <button class="btn btn-primary d-none" type="button" id="loadingBtn" disabled>
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            AI Processing...
+                        </button>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', function () {
+        var btn = document.getElementById('analyzeBtn');
+        var loadingBtn = document.getElementById('loadingBtn');
+        btn.classList.add('d-none');
+        loadingBtn.classList.remove('d-none');
+    });
+</script>
+</div>
+</div>
+</div>
+{% endblock %}

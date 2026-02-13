@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-header justify-content-center bg-primary text-white">
+                <h3 class="font-weight-light my-2 text-center">Create Account</h3>
+            </div>
+            <div class="card-body">
+                <form method="post"
+                    onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='Creating Account...';">
+                    {% csrf_token %}
+                    <!-- Manual rendering to ensure visibility if crispy fails -->
+                    {{ form.as_p }}
+                    <div class="d-grid mt-3">
+                        <button class="btn btn-primary btn-block" type="submit">Sign Up</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center py-3">
+                <div class="small"><a href="{% url 'login' %}">Have an account? Go to Login</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    /* Full width layout for auth pages */
+    #sidebar-wrapper {
+        display: none;
+    }
+
+    #page-content-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: 0;
+    }
+
+    #menu-toggle {
+        display: none;
+    }
+</style>
+{% endblock %}
