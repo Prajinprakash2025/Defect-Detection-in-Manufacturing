@@ -9,8 +9,8 @@ from PIL import Image, ImageEnhance
 import os
 
 # --- CONFIGURATION ---
-# Lower this to catch more defects (higher recall), raise it to avoid false alarms (higher precision)
-CONFIDENCE_THRESHOLD = 0.80 
+# UPDATED: Increased to 0.95 to eliminate false positives from lighting/reflections
+CONFIDENCE_THRESHOLD = 0.95 
 # ---------------------
 
 @login_required
@@ -42,8 +42,9 @@ def upload_inspection(request):
             except Exception as e:
                 print(f"Preprocessing Error: {e}")
 
-            # Process Image with AI
-            # image_path is already set
+            # --- Real AI Processing ---
+            # The system now ignores filenames and purely relies on the AI model
+            print(f"Sending image to AI: {inspection.image.name}")
             ai_result = detect_defect(image_path)
             
             # --- DEBUG LOGGING ---
@@ -56,7 +57,7 @@ def upload_inspection(request):
             inspection.raw_prediction_json = ai_result.get('raw_response', '{}')
             
             # Threshold Logic
-            # Requirement: If 'Detected' in label AND confidence >= 0.80 -> Defective
+            # Requirement: If 'Detected' in label AND confidence >= 0.95 -> Defective
             label = inspection.prediction_label
             is_defective = ai_result.get('is_defective', False)
             confidence = float(ai_result.get('confidence', 0.0))
@@ -85,7 +86,7 @@ def upload_inspection(request):
                 Defect.objects.create(
                     inspection=inspection,
                     defect_type=defect_type,
-                    severity='High' if inspection.confidence_score > 0.9 else 'Medium'
+                    severity='High' if inspection.confidence_score > 0.97 else 'Medium'
                 )
                 
                 # Create Alert
@@ -323,3 +324,18 @@ def change_user_role(request, pk):
             
     return redirect('user_management')
 
+@login_required
+def report_preview(request):
+    # Get all inspections for the preview table
+    inspections = Inspection.objects.all().order_by('-timestamp')
+    
+    # Calculate some quick stats for the report header
+    total = inspections.count()
+    defective = inspections.filter(status='Defective').count()
+    
+    context = {
+        'inspections': inspections,
+        'total_scanned': total,
+        'total_defective': defective,
+    }
+    return render(request, 'inspections/report_preview.html', context)

@@ -25,12 +25,12 @@ def dashboard(request):
     defect_rate = (total_defects / total_inspections * 100) if total_inspections > 0 else 0
     pending_alerts = Alert.objects.filter(alert_status='Unread').count()
     
-    # NEW: Total Inspectors (Admin Only)
-    total_inspectors = 0
+    # NEW: Total Users (Admin Only) - "Reflects 3 different users"
+    total_users = 0
     if request.user.role == 'admin':
         from django.contrib.auth import get_user_model
         User = get_user_model()
-        total_inspectors = User.objects.filter(role='inspector').count()
+        total_users = User.objects.count()
 
     # Monthly Trends
     if total_inspections > 0:
@@ -63,13 +63,24 @@ def dashboard(request):
     recent_inspections = base_qs.order_by('-timestamp')[:5]
 
     # --- Smart Insights ---
-    # 1. Batch with Highest Defects
-    # Filter by base_qs to respect role limits (e.g. Inspector sees only their own defects)
-    top_batch = base_qs.filter(status='Defective') \
-        .values('batch__batch_number') \
-        .annotate(defect_count=Count('id')) \
-        .order_by('-defect_count') \
-        .first()
+    # 1. Batch with Highest Defect Percentage
+    # Get stats per batch
+    batch_stats = base_qs.values('batch__batch_number') \
+        .annotate(total=Count('id'), defective=Count('id', filter=Q(status='Defective')))
+    
+    top_batch = None
+    highest_rate = -1
+    
+    for stat in batch_stats:
+        if stat['total'] > 0:
+            rate = (stat['defective'] / stat['total']) * 100
+            if rate > highest_rate:
+                highest_rate = rate
+                top_batch = {
+                    'batch__batch_number': stat['batch__batch_number'],
+                    'defect_count': stat['defective'],
+                    'defect_rate': round(rate, 1)
+                }
 
     # 2. Defect Trend (Compare last 7 days vs previous 7 days)
     from django.utils import timezone
@@ -93,7 +104,7 @@ def dashboard(request):
         'total_defects': total_defects,
         'defect_rate': round(defect_rate, 2),
         'pending_alerts': pending_alerts,
-        'total_inspectors': total_inspectors,
+        'total_users': total_users,
         'trend_labels': json.dumps(trend_labels),
         'trend_data_total': json.dumps(trend_data_total),
         'trend_data_defective': json.dumps(trend_data_defective),
@@ -109,3 +120,7 @@ def dashboard(request):
     }
 
     return render(request, 'dashboard/dashboard.html', context)
+
+@login_required
+def about(request):
+    return render(request, 'about.html')

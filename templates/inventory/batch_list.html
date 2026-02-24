@@ -1,45 +1,82 @@
 {% extends 'base.html' %}
-{% block title %}Batches{% endblock %}
+{% block title %}Batch Tracking - Defect DetectAI{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Batches</h1>
-    <a href="{% url 'create_batch' %}" class="btn btn-sm btn-primary">
-        <i class="fas fa-plus me-2"></i>Add Batch
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+    <div>
+        <h2 class="h3 font-weight-bold text-dark mb-0">Production Batches</h2>
+        <small class="text-muted">Active manufacturing runs pending quality inspection</small>
+    </div>
+    {% if request.user.role == 'admin' %}
+    <a href="{% url 'create_batch' %}" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus me-2"></i>New Batch
     </a>
+    {% endif %}
 </div>
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Batch #</th>
-                        <th>Product</th>
-                        <th>Manufacture Date</th>
-                        <th>Quantity</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for batch in batches %}
-                    <tr>
-                        <td>{{ batch.batch_number }}</td>
-                        <td>{{ batch.product.name }}</td>
-                        <td>{{ batch.manufacture_date }}</td>
-                        <td>{{ batch.quantity }}</td>
-                        <td>
-                            <a href="{% url 'edit_batch' batch.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                            <a href="{% url 'delete_batch' batch.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center">No batches found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+    {% for batch in batches %}
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0 rounded-3">
+            
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2">
+                    <i class="fas fa-circle text-success small me-1" style="font-size: 0.5rem;"></i> Active
+                </span>
+                <span class="text-muted small fw-bold text-uppercase border-bottom border-2 border-primary">
+                    {{ batch.product.name }}
+                </span>
+            </div>
+            
+            <div class="card-body pt-3">
+                <h4 class="fw-bold text-dark mb-3">#{{ batch.batch_number }}</h4>
+                
+                <div class="d-flex justify-content-between bg-light p-3 rounded-3 mb-4">
+                    <div>
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Quantity</small>
+                        <strong class="text-dark fs-5">{{ batch.quantity }}</strong>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Manufactured</small>
+                        <strong class="text-dark">{{ batch.manufacture_date|date:"M d, Y" }}</strong>
+                    </div>
+                </div>
+
+                {% if batch.inspector_instructions %}
+                <div class="p-3 mb-0 rounded-3 bg-warning bg-opacity-10 border-start border-warning border-4">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas fa-clipboard-check text-warning me-2"></i>
+                        <span class="text-dark fw-bold" style="font-size: 0.85rem;">Shift Instructions</span>
+                    </div>
+                    <p class="card-text text-dark mb-0 ms-4" style="font-size: 0.85rem;">
+                        {{ batch.inspector_instructions }}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if request.user.role == 'admin' %}
+            <div class="card-footer bg-white border-top py-3">
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'edit_batch' batch.pk %}" class="btn btn-sm btn-outline-secondary px-3">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'delete_batch' batch.pk %}" class="btn btn-sm btn-outline-danger px-3">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            
         </div>
     </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-light text-center shadow-sm border-0 py-5 rounded-3">
+            <i class="fas fa-clipboard-list fa-3x mb-3 text-muted opacity-50"></i>
+            <h5 class="text-muted">No active batches are currently being tracked.</h5>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

@@ -6,9 +6,32 @@
 {% block content %}
 <div class="row">
     <div class="col-md-6 offset-md-3">
-        <div class="card shadow-sm mt-4">
+        
+        <div class="card shadow-sm mt-4 border-0 border-top border-success border-4 rounded-3">
+            <div class="card-body text-center py-4">
+                <h4 class="fw-bold text-dark mb-3">
+                    <i class="fas fa-camera text-success me-2"></i> Live Factory Scanner
+                </h4>
+                <p class="text-muted small mb-3">Select a batch in the form below, then turn on the camera to scan items in real-time.</p>
+                
+                <video id="live-camera" width="100%" style="max-width: 100%; border: 3px dashed #ccc; border-radius: 8px; display: none; margin: 0 auto;" autoplay playsinline></video>
+                
+                <canvas id="camera-canvas" style="display: none;"></canvas>
+                
+                <div class="mt-4">
+                    <button type="button" id="start-camera-btn" class="btn btn-outline-success px-4 py-2 fw-bold w-100">
+                        <i class="fas fa-video me-2"></i> Turn On Camera
+                    </button>
+                    <button type="button" id="capture-btn" class="btn btn-success px-4 py-2 fw-bold shadow w-100" style="display: none;">
+                        <i class="fas fa-crosshairs me-2"></i> Capture & Analyze
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-4 mb-5">
             <div class="card-header bg-white">
-                <h4 class="mb-0">Run New Inspection</h4>
+                <h4 class="mb-0"><i class="fas fa-upload text-primary me-2"></i> Or Upload Image File</h4>
             </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data" id="uploadForm">
@@ -21,10 +44,10 @@
                     </div>
                     {% else %}
                     <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-primary" type="submit" id="analyzeBtn">
-                            <i class="fas fa-microscope me-2"></i>Analyze Image
+                        <button class="btn btn-primary fw-bold" type="submit" id="analyzeBtn">
+                            <i class="fas fa-microscope me-2"></i> Analyze Uploaded Image
                         </button>
-                        <button class="btn btn-primary d-none" type="button" id="loadingBtn" disabled>
+                        <button class="btn btn-primary d-none fw-bold" type="button" id="loadingBtn" disabled>
                             <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                             AI Processing...
                         </button>
@@ -33,18 +56,82 @@
                 </form>
             </div>
         </div>
+
     </div>
 </div>
 
 <script>
-    document.getElementById('uploadForm').addEventListener('submit', function () {
-        var btn = document.getElementById('analyzeBtn');
-        var loadingBtn = document.getElementById('loadingBtn');
-        btn.classList.add('d-none');
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Traditional Form Loading Animation Logic
+    const uploadForm = document.getElementById('uploadForm');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const loadingBtn = document.getElementById('loadingBtn');
+
+    uploadForm.addEventListener('submit', function () {
+        analyzeBtn.classList.add('d-none');
         loadingBtn.classList.remove('d-none');
     });
+
+    // 2. Live Camera Logic
+    const video = document.getElementById('live-camera');
+    const canvas = document.getElementById('camera-canvas');
+    const startBtn = document.getElementById('start-camera-btn');
+    const captureBtn = document.getElementById('capture-btn');
+    
+    // Find Django's automatically generated file input and batch select
+    const fileInput = document.querySelector('input[type="file"]'); 
+    const batchSelect = document.querySelector('select[name="batch"]');
+
+    // Turn on the webcam
+    startBtn.addEventListener('click', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            video.srcObject = stream;
+            video.style.display = 'block';
+            startBtn.style.display = 'none';
+            captureBtn.style.display = 'inline-block';
+        } catch (err) {
+            alert("Camera access denied! Please allow camera permissions in your browser.");
+            console.error("Camera Error:", err);
+        }
+    });
+
+    // Take the picture and automatically submit the Django form
+    captureBtn.addEventListener('click', () => {
+        // Safety Check: Did the user select a batch?
+        if (batchSelect && !batchSelect.value) {
+            alert("⚠️ Please select a Batch from the dropdown below before scanning!");
+            return;
+        }
+
+        // Change the button to show it's working
+        captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing Scan...';
+        captureBtn.disabled = true;
+
+        // Draw the current video frame onto the hidden canvas
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        
+        // Convert the canvas picture into a JPEG file
+        canvas.toBlob((blob) => {
+            const fileName = "live_scan_" + Date.now() + ".jpg";
+            const file = new File([blob], fileName, { type: "image/jpeg" });
+            
+            // Put the new file directly into Django's existing file input
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            
+            // Trigger the loading animation UI
+            analyzeBtn.classList.add('d-none');
+            loadingBtn.classList.remove('d-none');
+
+            // Submit the form to your backend AI!
+            uploadForm.submit();
+            
+        }, 'image/jpeg', 0.95); 
+    });
+});
 </script>
-</div>
-</div>
-</div>
 {% endblock %}

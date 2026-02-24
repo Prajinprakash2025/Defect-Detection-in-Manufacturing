@@ -149,3 +149,5 @@ LOGIN_URL = '/accounts/login/'
 
 # Email Backend (Console for development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'login'

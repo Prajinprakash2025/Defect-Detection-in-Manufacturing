@@ -4,18 +4,23 @@ from django.contrib import messages
 from .models import Product, Batch
 from .forms import ProductForm, BatchForm
 
+# --- SECURITY CHECK ---
 def is_admin(user):
     return user.is_authenticated and (user.role == 'admin' or user.is_superuser)
 
+# ==========================================
+# PRODUCT VIEWS (The "Catalog")
+# ==========================================
 @login_required
-@user_passes_test(is_admin)
 def product_list(request):
+    # Anyone logged in can see the product catalog
     products = Product.objects.all().order_by('-created_at')
     return render(request, 'inventory/product_list.html', {'products': products})
 
 @login_required
 @user_passes_test(is_admin)
 def create_product(request):
+    # Only Admins can create a new product definition
     if request.method == 'POST':
         form = ProductForm(request.POST)
         if form.is_valid():
@@ -26,9 +31,12 @@ def create_product(request):
         form = ProductForm()
     return render(request, 'inventory/create_product.html', {'form': form, 'title': 'Create Product'})
 
+# ==========================================
+# BATCH VIEWS (The "Active Production")
+# ==========================================
 @login_required
-@user_passes_test(is_admin)
 def batch_list(request):
+    # Anyone logged in can see active batches
     batches = Batch.objects.select_related('product').all().order_by('-manufacture_date')
     return render(request, 'inventory/batch_list.html', {'batches': batches})
 
@@ -68,3 +76,14 @@ def delete_batch(request, pk):
         messages.success(request, 'Batch deleted successfully.')
         return redirect('batch_list')
     return render(request, 'inventory/delete_confirm.html', {'object': batch, 'type': 'Batch'})
+
+@login_required
+@user_passes_test(is_admin)
+def delete_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, 'Product deleted successfully.')
+        return redirect('product_list')
+    # This uses the same confirmation page your Batches use!
+    return render(request, 'inventory/delete_confirm.html', {'object': product, 'type': 'Product'})

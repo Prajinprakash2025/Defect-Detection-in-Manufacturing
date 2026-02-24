@@ -1,49 +1,111 @@
-{% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% extends 'base_auth.html' %} {% load crispy_forms_tags %}
 
-{% block title %}Sign Up{% endblock %}
+{% block title %}Request Access - DetectAI Platform{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-lg border-0 rounded-lg">
-            <div class="card-header justify-content-center bg-primary text-white">
-                <h3 class="font-weight-light my-2 text-center">Create Account</h3>
+<style>
+    /* Custom Professional UI Styles matching the Login Page */
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+    }
+    .signup-card {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        border: 1px solid rgba(255,255,255,0.8);
+    }
+    .signup-header {
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        padding: 30px 20px;
+        position: relative;
+    }
+    .brand-icon {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-bottom: 10px;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .btn-signup {
+        background: linear-gradient(135deg, #203a43 0%, #2c5364 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 14px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    .btn-signup:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(44, 83, 100, 0.4);
+        background: linear-gradient(135deg, #2c5364 0%, #203a43 100%);
+    }
+    /* Crispy form overrides for a cleaner look */
+    .form-control {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid #ced4da;
+        background-color: #f8f9fa;
+        transition: all 0.2s ease;
+    }
+    .form-control:focus {
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(44, 83, 100, 0.15);
+        border-color: #2c5364;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.85rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    /* HIDE THE UNNECESSARY DJANGO PASSWORD RULES */
+    .helptext, .form-text, ul.errorlist.nonfield {
+        display: none !important;
+    }
+</style>
+
+<div class="row justify-content-center align-items-center" style="min-height: 100vh; padding: 20px 0;">
+    <div class="col-11 col-sm-8 col-md-6 col-lg-5">
+        <div class="card signup-card bg-white">
+            
+            <div class="signup-header text-white text-center">
+                <div class="brand-icon shadow-sm">
+                    <i class="fas fa-user-shield fa-2x text-white"></i>
+                </div>
+                <h4 class="font-weight-bold mb-1" style="letter-spacing: 1px;">Request Access</h4>
+                <p class="mb-0 text-light" style="opacity: 0.8; font-size: 0.85rem;">DetectAI Quality Assurance</p>
             </div>
-            <div class="card-body">
-                <form method="post"
-                    onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='Creating Account...';">
+            
+            <div class="card-body p-4 p-md-5">
+                <h6 class="text-center text-muted mb-4">Register your organizational profile</h6>
+                
+                <form method="post" onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\'fas fa-spinner fa-spin ms-2\'></i> Provisioning Account...';">
                     {% csrf_token %}
-                    <!-- Manual rendering to ensure visibility if crispy fails -->
-                    {{ form.as_p }}
-                    <div class="d-grid mt-3">
-                        <button class="btn btn-primary btn-block" type="submit">Sign Up</button>
+                    
+                    {{ form|crispy }}
+
+                    <div class="d-grid gap-2 mt-4 mb-2">
+                        <button type="submit" class="btn btn-primary btn-signup text-white shadow-sm">
+                            Submit Registration <i class="fas fa-check-circle ms-2"></i>
+                        </button>
                     </div>
                 </form>
             </div>
-            <div class="card-footer text-center py-3">
-                <div class="small"><a href="{% url 'login' %}">Have an account? Go to Login</a></div>
+            
+            <div class="card-footer text-center py-4 bg-white border-top">
+                <p class="small text-muted mb-0">
+                    Already have system access? <br>
+                    <a href="{% url 'login' %}" class="text-primary font-weight-bold text-decoration-none" style="color: #2c5364 !important;">
+                        Return to Secure Login
+                    </a>
+                </p>
             </div>
+            
         </div>
     </div>
 </div>
-<style>
-    /* Full width layout for auth pages */
-    #sidebar-wrapper {
-        display: none;
-    }
-
-    #page-content-wrapper {
-        margin-left: 0;
-        width: 100%;
-    }
-
-    #wrapper.toggled #sidebar-wrapper {
-        margin-left: 0;
-    }
-
-    #menu-toggle {
-        display: none;
-    }
-</style>
 {% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Preview{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark"><i class="fas fa-file-alt text-primary me-2"></i> Factory Inspection Report</h3>
+        <div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary me-2"><i class="fas fa-arrow-left me-2"></i>Back to Dashboard</a>
+            <a href="{% url 'export_report' %}" class="btn btn-success shadow-sm"><i class="fas fa-download me-2"></i>Confirm & Download CSV</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-6 border-end">
+                    <h5 class="text-muted mb-1">Total Items Scanned</h5>
+                    <h2 class="fw-bold text-dark">{{ total_scanned }}</h2>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-muted mb-1">Total Defects Found</h5>
+                    <h2 class="fw-bold text-danger">{{ total_defective }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-0 pt-4">
+            <h5 class="fw-bold mb-0">Data Preview</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th scope="col" class="ps-4">ID</th>
+                            <th scope="col">Batch Number</th>
+                            <th scope="col">Prediction Label</th>
+                            <th scope="col">Confidence</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inspections %}
+                        <tr>
+                            <td class="ps-4 text-muted">#{{ item.id }}</td>
+                            <td class="fw-bold">{{ item.batch.batch_number }}</td>
+                            <td>{{ item.prediction_label }}</td>
+                            <td>{{ item.confidence_score|floatformat:2 }}</td>
+                            <td>
+                                {% if item.status == 'Defective' %}
+                                    <span class="badge bg-danger">Defective</span>
+                                {% else %}
+                                    <span class="badge bg-success">Passed</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.timestamp|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

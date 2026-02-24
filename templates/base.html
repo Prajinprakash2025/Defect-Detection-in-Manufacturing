@@ -6,29 +6,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Defect Detection System</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 
 <body>
     <div class="d-flex" id="wrapper">
-        <!-- Sidebar -->
         <div class="bg-dark text-white" id="sidebar-wrapper">
             <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom">
                 <i class="fas fa-microscope me-2"></i>DetectAI
             </div>
             <div class="list-group list-group-flush my-3">
-                <!-- Dashboard: All Roles -->
                 <a href="{% url 'dashboard' %}"
                     class="list-group-item list-group-item-action bg-transparent second-text {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                 </a>
 
-                <!-- Inspection: Admin & Inspector ONLY -->
                 {% if user.role == 'admin' or user.role == 'inspector' %}
                 <a href="{% url 'upload_inspection' %}"
                     class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'upload_inspection' %}active{% endif %}">
@@ -36,14 +30,11 @@
                 </a>
                 {% endif %}
 
-                <!-- History: All Roles (Admin/Manager=All, Inspector=Mine) -->
                 <a href="{% url 'inspection_list' %}"
                     class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'inspection_list' %}active{% endif %}">
                     <i class="fas fa-history me-2"></i>History
                 </a>
 
-                <!-- Inventory (Batches/Products): ADMIN ONLY -->
-                {% if user.role == 'admin' %}
                 <a href="{% url 'batch_list' %}"
                     class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'batch' in request.path %}active{% endif %}">
                     <i class="fas fa-layer-group me-2"></i>Batches
@@ -52,27 +43,25 @@
                     class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'product' in request.path %}active{% endif %}">
                     <i class="fas fa-boxes me-2"></i>Products
                 </a>
-                {% endif %}
 
-                <!-- Analytics & Reports: Admin & Manager -->
                 {% if user.role == 'admin' or user.role == 'manager' %}
-                <a href="{% url 'dashboard' %}#analytics"
-                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
-                    <i class="fas fa-chart-line me-2"></i>Analytics
-                </a>
-                <a href="{% url 'export_report' %}"
-                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                <a href="{% url 'report_preview' %}"
+                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'report_preview' %}active{% endif %}">
                     <i class="fas fa-file-download me-2"></i>Reports
                 </a>
                 {% endif %}
 
-                <!-- User Management: Admin Only -->
                 {% if user.role == 'admin' %}
                 <a href="{% url 'user_management' %}"
                     class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
                     <i class="fas fa-users-cog me-2"></i>User Management
                 </a>
                 {% endif %}
+
+                <a href="{% url 'about' %}"
+                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
+                    <i class="fas fa-info-circle me-2"></i>About System
+                </a>
 
                 <form method="post" action="{% url 'logout' %}"
                     class="list-group-item list-group-item-action bg-transparent p-0 border-0">
@@ -84,9 +73,6 @@
                 </form>
             </div>
         </div>
-        <!-- /#sidebar-wrapper -->
-
-        <!-- Page Content -->
         <div id="page-content-wrapper">
             <nav class="navbar navbar-expand-lg navbar-light bg-light py-4 px-4 border-bottom">
                 <div class="d-flex align-items-center">
@@ -137,9 +123,6 @@
             </div>
         </div>
     </div>
-    <!-- /#page-content-wrapper -->
-
-    <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         var el = document.getElementById("wrapper");

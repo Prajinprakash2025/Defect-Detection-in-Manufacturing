@@ -8,4 +8,6 @@ urlpatterns = [
     path('batches/create/', views.create_batch, name='create_batch'),
     path('batches/edit/<int:pk>/', views.edit_batch, name='edit_batch'),
     path('batches/delete/<int:pk>/', views.delete_batch, name='delete_batch'),
+    path('products/<int:pk>/delete/', views.delete_product, name='delete_product'),
+    
 ]

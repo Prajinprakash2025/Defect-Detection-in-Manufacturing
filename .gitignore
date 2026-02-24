@@ -1,0 +1,8 @@
+# Google Cloud VIP Pass
+credentials.json
+
+# Python/Django environment files
+venv/
+__pycache__/
+db.sqlite3
+media/

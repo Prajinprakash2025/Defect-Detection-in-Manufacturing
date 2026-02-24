@@ -11,4 +11,7 @@ urlpatterns = [
     path('verify/<int:pk>/', views.verify_result, name='verify_result'),
     path('alerts/', views.alert_list, name='alert_list'),
     path('export/', views.export_report, name='export_report'),
+    # Add this line right above your export_report path:
+    path('report-preview/', views.report_preview, name='report_preview'),
+    
 ]
