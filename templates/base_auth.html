@@ -1,38 +1,93 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Defect Detection{% endblock %}</title>
-    <!-- Bootstrap 5 CSS -->
+    <title>{% block title %}DetectAI | Authentication{% endblock %}</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
     <style>
+        /* Specific overrides to perfectly center the Auth Cards */
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-body);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ambient Premium Background Blurs */
+        .ambient-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .blob-1 {
+            top: -10%; left: -5%;
+            width: 400px; height: 400px;
+            background: rgba(79, 70, 229, 0.35); /* Indigo */
+        }
+        .blob-2 {
+            bottom: -15%; right: -5%;
+            width: 500px; height: 500px;
+            background: rgba(56, 189, 248, 0.25); /* Light Blue */
+        }
+        [data-bs-theme="dark"] .blob-1 { background: rgba(79, 70, 229, 0.15); }
+        [data-bs-theme="dark"] .blob-2 { background: rgba(56, 189, 248, 0.1); }
+
+        /* The container that holds the Login/Register forms */
+        .auth-container {
+            width: 100%;
+            max-width: 420px; /* Locks the login card to a sleek width */
+            padding: 1.5rem;
+            z-index: 10;
+        }
+
+        /* Protects the flash messages from breaking the layout */
+        .auth-messages {
+            width: 100%;
+            margin-bottom: 1.5rem;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+
+    <div class="auth-container">
+        
         {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="auth-messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert">
+                <i class="fas fa-info-circle me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
         {% endif %}
 
-        {% block content %}
-        {% endblock %}
+        <div style="position: relative; z-index: 10;">
+            {% block content %}
+            {% endblock %}
+        </div>
+
     </div>
 
-    <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

@@ -5,133 +5,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Defect Detection System</title>
+    <title>DetectAI | Enterprise Defect Detection</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 
 <body>
-    <div class="d-flex" id="wrapper">
-        <div class="bg-dark text-white" id="sidebar-wrapper">
-            <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom">
-                <i class="fas fa-microscope me-2"></i>DetectAI
-            </div>
-            <div class="list-group list-group-flush my-3">
-                <a href="{% url 'dashboard' %}"
-                    class="list-group-item list-group-item-action bg-transparent second-text {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+    <div id="wrapper">
+
+        <div id="sidebar-wrapper">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <i class="fas fa-microscope"></i> DetectAI
+            </a>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Main System</div>
+                
+                <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-pie"></i> Dashboard
                 </a>
 
                 {% if user.role == 'admin' or user.role == 'inspector' %}
-                <a href="{% url 'upload_inspection' %}"
-                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'upload_inspection' %}active{% endif %}">
-                    <i class="fas fa-upload me-2"></i>Inspection
+                <a href="{% url 'upload_inspection' %}" class="sidebar-link {% if request.resolver_match.url_name == 'upload_inspection' %}active{% endif %}">
+                    <i class="fas fa-camera-retro"></i> New Inspection
                 </a>
                 {% endif %}
 
-                <a href="{% url 'inspection_list' %}"
-                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'inspection_list' %}active{% endif %}">
-                    <i class="fas fa-history me-2"></i>History
+                <a href="{% url 'inspection_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'inspection_list' %}active{% endif %}">
+                    <i class="fas fa-layer-group"></i> Inspection History
                 </a>
 
-                <a href="{% url 'batch_list' %}"
-                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'batch' in request.path %}active{% endif %}">
-                    <i class="fas fa-layer-group me-2"></i>Batches
+                <div class="nav-section-label">Production Assets</div>
+
+                <a href="{% url 'batch_list' %}" class="sidebar-link {% if 'batch' in request.path %}active{% endif %}">
+                    <i class="fas fa-boxes-stacked"></i> Batch Tracking
                 </a>
-                <a href="{% url 'product_list' %}"
-                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'product' in request.path %}active{% endif %}">
-                    <i class="fas fa-boxes me-2"></i>Products
+
+                <a href="{% url 'product_list' %}" class="sidebar-link {% if 'product' in request.path %}active{% endif %}">
+                    <i class="fas fa-cube"></i> Product Lines
                 </a>
 
                 {% if user.role == 'admin' or user.role == 'manager' %}
-                <a href="{% url 'report_preview' %}"
-                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'report_preview' %}active{% endif %}">
-                    <i class="fas fa-file-download me-2"></i>Reports
+                <div class="nav-section-label">Administration</div>
+
+                <a href="{% url 'report_preview' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report_preview' %}active{% endif %}">
+                    <i class="fas fa-file-pdf"></i> Generate Reports
                 </a>
                 {% endif %}
 
                 {% if user.role == 'admin' %}
-                <a href="{% url 'user_management' %}"
-                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
-                    <i class="fas fa-users-cog me-2"></i>User Management
+                <a href="{% url 'user_management' %}" class="sidebar-link {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
+                    <i class="fas fa-users-gear"></i> User Management
                 </a>
                 {% endif %}
-
-                <a href="{% url 'about' %}"
-                    class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
-                    <i class="fas fa-info-circle me-2"></i>About System
-                </a>
-
-                <form method="post" action="{% url 'logout' %}"
-                    class="list-group-item list-group-item-action bg-transparent p-0 border-0">
-                    {% csrf_token %}
-                    <button type="submit"
-                        class="btn btn-link text-danger fw-bold text-decoration-none w-100 text-start px-3 py-2">
-                        <i class="fas fa-power-off me-2"></i>Logout
-                    </button>
-                </form>
-            </div>
-        </div>
-        <div id="page-content-wrapper">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light py-4 px-4 border-bottom">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-align-left primary-text fs-4 me-3" id="menu-toggle"></i>
-                    <h2 class="fs-2 m-0">{% block title %}Dashboard{% endblock %}</h2>
-                </div>
-
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle second-text fw-bold" href="#" id="navbarDropdown"
-                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user me-2"></i>{{ user.username|default:"Guest" }}
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="#">Profile</a></li>
-                                <li><a class="dropdown-item" href="#">Settings</a></li>
-                                <li>
-                                    <form method="post" action="{% url 'logout' %}">
-                                        {% csrf_token %}
-                                        <button type="submit" class="dropdown-item">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
             </nav>
 
-            <div class="container-fluid px-4">
-                {% if messages %}
+            <div class="mt-auto">
+                <div class="sidebar-user d-flex align-items-center gap-3 p-3 border-top border-secondary border-opacity-25">
+                    <div class="sidebar-avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-weight: bold;">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name text-white fw-bold" style="font-size: 0.85rem;">{{ user.username|default:"Guest" }}</div>
+                        <div class="sidebar-user-role text-muted" style="font-size: 0.75rem; text-transform: capitalize;">{{ user.role|default:"User" }}</div>
+                    </div>
+                </div>
+
+                <div class="sidebar-logout p-3 border-top border-secondary border-opacity-25">
+                    <form method="post" action="{% url 'logout' %}" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="sidebar-link w-100 border-0 bg-transparent text-start text-danger fw-bold">
+                            <i class="fas fa-arrow-right-from-bracket"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-content-wrapper">
+            
+            <header class="top-navbar shadow-sm">
+                <div class="d-flex align-items-center gap-3">
+                    <button id="menu-toggle" class="nav-action-btn" title="Toggle Sidebar">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h5 class="m-0 fw-bold">{% block title %}Dashboard{% endblock %}</h5>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <button id="darkModeToggle" class="nav-action-btn" title="Toggle Theme">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
+
+                    <div class="dropdown">
+                        <button class="nav-action-btn border-0 d-flex align-items-center gap-2" style="width: auto; padding: 0 10px;" type="button" data-bs-toggle="dropdown">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-weight: bold;">
+                                {{ user.username|first|upper }}
+                            </div>
+                            <div class="text-start d-none d-md-block">
+                                <div class="fw-bold" style="font-size: 0.85rem; line-height: 1;">{{ user.username|default:"Guest" }}</div>
+                            </div>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li><a class="dropdown-item py-2" href="#"><i class="fas fa-user me-2 text-muted"></i> Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item py-2 text-danger fw-bold">
+                                        <i class="fas fa-power-off me-2"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            {% if messages %}
+            <div class="px-4 pt-4 pb-0">
                 {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3" role="alert">
-                    {{ message }}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert">
+                    <i class="fas fa-info-circle me-2"></i> {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 {% endfor %}
-                {% endif %}
+            </div>
+            {% endif %}
 
+            <main class="main-content">
                 {% block content %}
                 {% endblock %}
-            </div>
+            </main>
+
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        var el = document.getElementById("wrapper");
-        var toggleButton = document.getElementById("menu-toggle");
+        // Sidebar Toggle
+        const wrapper = document.getElementById("wrapper");
+        const toggleBtn = document.getElementById("menu-toggle");
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => wrapper.classList.toggle("toggled"));
+        }
 
-        toggleButton.onclick = function () {
-            el.classList.toggle("toggled");
-        };
+        // Dark Mode Logic
+        const themeBtn = document.getElementById('darkModeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        if (localStorage.getItem('detectai_theme') === 'dark') {
+            html.setAttribute('data-bs-theme', 'dark');
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+        }
+
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                if (html.getAttribute('data-bs-theme') === 'dark') {
+                    html.setAttribute('data-bs-theme', 'light');
+                    themeIcon.classList.replace('fa-sun', 'fa-moon');
+                    localStorage.setItem('detectai_theme', 'light');
+                } else {
+                    html.setAttribute('data-bs-theme', 'dark');
+                    themeIcon.classList.replace('fa-moon', 'fa-sun');
+                    localStorage.setItem('detectai_theme', 'dark');
+                }
+            });
+        }
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
-
 </html>

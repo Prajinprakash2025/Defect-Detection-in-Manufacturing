@@ -3,70 +3,112 @@
 {% block title %}User Management{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">User Management</h1>
-</div>
+<div class="container-fluid px-0">
+    
+    <div class="mb-4 d-flex justify-content-between align-items-end flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fas fa-users-gear text-primary me-2"></i> User Management
+            </h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Manage system access, assign roles, and control permissions.</p>
+        </div>
+    </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Date Joined</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>
-                            {% if user.role == 'admin' %}
-                            <span class="badge bg-danger">Admin</span>
-                            {% elif user.role == 'manager' %}
-                            <span class="badge bg-warning text-dark">Manager</span>
-                            {% else %}
-                            <span class="badge bg-info text-dark">Inspector</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
-                        <td>
-                            <!-- Edit Role Form (Modal Trigger would be better, using inline form for speed) -->
-                            <form action="{% url 'edit_user' user.id %}" method="post"
-                                class="d-inline-flex align-items-center">
-                                {% csrf_token %}
-                                <select name="role" class="form-select form-select-sm me-2" style="width: auto;">
-                                    <option value="admin" {% if user.role=='admin' %}selected{% endif %}>Admin</option>
-                                    <option value="manager" {% if user.role=='manager' %}selected{% endif %}>Manager
-                                    </option>
-                                    <option value="inspector" {% if user.role=='inspector' %}selected{% endif %}>
-                                        Inspector</option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
-                            </form>
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">User</th>
+                            <th>Contact</th>
+                            <th>System Role</th>
+                            <th>Date Joined</th>
+                            <th class="pe-4 text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex justify-content-center align-items-center me-3 fw-bold" style="width: 42px; height: 42px; font-size: 1.1rem;">
+                                        {{ user.username|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold" style="color: var(--text-main); font-size: 0.95rem;">{{ user.username }}</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">User ID: #{{ user.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
 
-                            <!-- Delete User -->
-                            {% if user != request.user %}
-                            <form action="{% url 'delete_user' user.id %}" method="post" class="d-inline ms-2"
-                                onsubmit="return confirm('Are you sure? This cannot be undone.');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                            </form>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center">No users found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            <td>
+                                {% if user.email %}
+                                    <span class="text-muted" style="font-size: 0.9rem;">{{ user.email }}</span>
+                                {% else %}
+                                    <span class="text-muted fst-italic" style="font-size: 0.85rem;">No email provided</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if user.role == 'admin' %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill" style="font-weight: 600; font-size: 0.75rem;">Admin</span>
+                                {% elif user.role == 'manager' %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 rounded-pill" style="font-weight: 600; font-size: 0.75rem; color: #b45309 !important;">Manager</span>
+                                {% else %}
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill" style="font-weight: 600; font-size: 0.75rem; color: #0369a1 !important;">Inspector</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <span class="text-muted" style="font-size: 0.9rem;">
+                                    {{ user.date_joined|date:"M d, Y" }}
+                                </span>
+                            </td>
+
+                            <td class="pe-4">
+                                <div class="d-flex justify-content-end align-items-center gap-2">
+                                    
+                                    <form action="{% url 'edit_user' user.id %}" method="post" class="d-flex align-items-center gap-2 m-0">
+                                        {% csrf_token %}
+                                        <select name="role" class="form-select form-select-sm border-0 bg-light fw-semibold text-muted" style="width: 110px; box-shadow: none;">
+                                            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                            <option value="manager" {% if user.role == 'manager' %}selected{% endif %}>Manager</option>
+                                            <option value="inspector" {% if user.role == 'inspector' %}selected{% endif %}>Inspector</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 8px;" title="Save Role">
+                                            <i class="fas fa-save"></i>
+                                        </button>
+                                    </form>
+
+                                    {% if user != request.user %}
+                                    <form action="{% url 'delete_user' user.id %}" method="post" class="m-0" onsubmit="return confirm('Are you sure you want to permanently delete user {{ user.username }}?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 8px;" title="Delete User">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <div style="width: 32px;"></div>
+                                    {% endif %}
+
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-users-slash fs-2 mb-3 d-block opacity-50"></i>
+                                    <h6 class="fw-bold">No users found.</h6>
+                                    <p class="mb-0 small">There are currently no users in the system.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

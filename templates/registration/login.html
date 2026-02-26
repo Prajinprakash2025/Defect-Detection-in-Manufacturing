@@ -1,111 +1,43 @@
 {% extends 'base_auth.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Secure Login - DetectAI Platform{% endblock %}
+{% block title %}Secure Login | DetectAI{% endblock %}
 
 {% block content %}
-<style>
-    /* Custom Professional UI Styles */
-    body {
-        /* Soft industrial background to make the card pop */
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%); 
-    }
-    .login-card {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-        border: 1px solid rgba(255,255,255,0.8);
-    }
-    .login-header {
-        /* Deep enterprise blue gradient */
-        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        padding: 40px 20px;
-        position: relative;
-    }
-    .brand-icon {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 20px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-bottom: 15px;
-        backdrop-filter: blur(5px);
-        border: 1px solid rgba(255,255,255,0.2);
-    }
-    .btn-login {
-        background: linear-gradient(135deg, #203a43 0%, #2c5364 100%);
-        border: none;
-        border-radius: 8px;
-        padding: 14px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-    }
-    .btn-login:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 15px rgba(44, 83, 100, 0.4);
-        background: linear-gradient(135deg, #2c5364 0%, #203a43 100%);
-    }
-    /* Crispy form overrides for a cleaner look */
-    .form-control {
-        border-radius: 8px;
-        padding: 12px 15px;
-        border: 1px solid #ced4da;
-        background-color: #f8f9fa;
-        transition: all 0.2s ease;
-    }
-    .form-control:focus {
-        background-color: #ffffff;
-        box-shadow: 0 0 0 3px rgba(44, 83, 100, 0.15);
-        border-color: #2c5364;
-    }
-    .form-group label {
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-</style>
-
-<div class="row justify-content-center align-items-center" style="min-height: 100vh;">
-    <div class="col-11 col-sm-8 col-md-6 col-lg-5 col-xl-4">
-        <div class="card login-card bg-white">
-            
-            <div class="login-header text-white text-center">
-                <div class="brand-icon shadow-sm">
-                    <i class="fas fa-microscope fa-3x text-white"></i>
-                </div>
-                <h3 class="font-weight-bold mb-1" style="letter-spacing: 1px;">DetectAI</h3>
-                <p class="mb-0 text-light" style="opacity: 0.8; font-size: 0.9rem;">Intelligent Quality Assurance</p>
-            </div>
-            
-            <div class="card-body p-4 p-md-5">
-                <h6 class="text-center text-muted mb-4">Sign in with your organizational ID</h6>
-                
-                <form method="post" action="{% url 'login' %}">
-                    {% csrf_token %}
-                    
-                    {{ form|crispy }}
-
-                    <input type="hidden" name="next" value="{% if next %}{{ next }}{% else %}{% url 'dashboard' %}{% endif %}">
-
-                    <div class="d-grid gap-2 mt-5 mb-2">
-                        <button type="submit" class="btn btn-primary btn-login text-white shadow-sm">
-                            Access System <i class="fas fa-arrow-right ms-2"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
-            
-            <div class="card-footer text-center py-4 bg-white border-top">
-                <p class="small text-muted mb-0">
-                    Need inspection access? <br>
-                    <a href="{% url 'signup' %}" class="text-primary font-weight-bold text-decoration-none" style="color: #2c5364 !important;">
-                        Request an Account
-                    </a>
-                </p>
-            </div>
-            
+<div class="card shadow border-0 rounded-4 overflow-hidden">
+    
+    <div class="card-header bg-transparent border-0 text-center pt-5 pb-0">
+        <div class="d-inline-flex justify-content-center align-items-center rounded-circle bg-primary bg-opacity-10 text-primary mb-3" style="width: 72px; height: 72px;">
+            <i class="fas fa-microscope fa-2x"></i>
         </div>
+        <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">DetectAI</h3>
+        <p class="text-muted small fw-medium text-uppercase tracking-wide" style="letter-spacing: 1px;">Intelligent Quality Assurance</p>
     </div>
+    
+    <div class="card-body px-4 px-sm-5 pt-3 pb-4">
+        <h6 class="text-center text-muted mb-4 small">Sign in with your organizational ID</h6>
+        
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                {{ form|crispy }}
+            </div>
+
+            <input type="hidden" name="next" value="{% if next %}{{ next }}{% else %}{% url 'dashboard' %}{% endif %}">
+
+            <button type="submit" class="btn btn-primary w-100 py-2 mt-2 fw-bold d-flex justify-content-center align-items-center gap-2" style="border-radius: 10px;">
+                Access System <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+    </div>
+    
+    <div class="card-footer bg-light border-0 text-center py-4">
+        <p class="small text-muted mb-0">
+            Need inspection access? <br>
+            <a href="{% url 'signup' %}" class="fw-bold text-primary text-decoration-none mt-1 d-inline-block">Request an Account</a>
+        </p>
+    </div>
+    
 </div>
 {% endblock %}

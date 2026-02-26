@@ -1,145 +1,156 @@
 {% extends 'base.html' %}
 
-{% block title %}About - Defect DetectAI{% endblock %}
+{% block title %}About System{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <h1 class="mt-4">About Defect DetectAI</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-        <li class="breadcrumb-item active">About</li>
-    </ol>
+<div class="container-fluid px-0">
+    
+    <div class="mb-5">
+        <h2 class="fw-bold text-dark mb-2">About DetectAI</h2>
+        <p class="text-muted" style="font-size: 0.95rem;">Understanding the core technology, workflows, and permissions driving the platform.</p>
+    </div>
 
-    <div class="row">
+    <div class="row g-4">
         <div class="col-lg-8">
-            <!-- System Overview -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-info-circle me-1"></i>
-                    System Overview
-                </div>
-                <div class="card-body">
-                    <p class="lead">Defect DetectAI is an advanced computer vision system designed to automate quality
-                        control in manufacturing.</p>
-                    <p>By leveraging state-of-the-art machine learning models, the system inspects parts in real-time,
-                        identifying defects such as scratches, dents, and irregularities with high precision. This
-                        ensures that only high-quality products proceed to the next stage of the production line.</p>
+            
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-microscope fs-5"></i>
+                        </div>
+                        <h4 class="fw-bold mb-0">System Overview</h4>
+                    </div>
+                    <p class="lead" style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
+                        Defect DetectAI is an advanced computer vision system designed to automate quality control in manufacturing.
+                    </p>
+                    <p class="text-muted mb-0" style="line-height: 1.7;">
+                        By leveraging state-of-the-art machine learning models, the system inspects parts in real-time, identifying defects such as scratches, dents, and irregularities with high precision. This ensures that only high-quality products proceed to the next stage of the production line.
+                    </p>
                 </div>
             </div>
 
-            <!-- Technical Highlights Accordion -->
-            <div class="accordion mb-4" id="accordionAbout">
-
-                <!-- Model Calibration -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingCalibration">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapseCalibration" aria-expanded="true"
-                            aria-controls="collapseCalibration">
-                            <i class="fas fa-sliders-h me-2"></i> Model Calibration & Accuracy
-                        </button>
-                    </h2>
-                    <div id="collapseCalibration" class="accordion-collapse collapse show"
-                        aria-labelledby="headingCalibration" data-bs-parent="#accordionAbout">
-                        <div class="accordion-body">
-                            <strong>Precision-First Approach:</strong>
-                            <p>We have calibrated the AI model with a strict <code>CONFIDENCE_THRESHOLD</code> of
-                                <strong>0.85</strong>. This high threshold is designed to:</p>
-                            <ul>
-                                <li>Minimize <strong>False Positives</strong> (incorrectly flagging good parts as
-                                    defective).</li>
-                                <li>Ensure that when a defect is flagged, it is with a high degree of certainty.</li>
-                                <li>Reduce manual review workload by filtering out low-confidence "noise".</li>
-                            </ul>
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-cogs fs-5"></i>
                         </div>
+                        <h4 class="fw-bold mb-0">Technical Highlights</h4>
+                    </div>
+
+                    <div class="accordion accordion-flush" id="accordionAbout">
+                        
+                        <div class="accordion-item border-bottom">
+                            <h2 class="accordion-header" id="headingCalibration">
+                                <button class="accordion-button fw-bold bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCalibration" aria-expanded="true" aria-controls="collapseCalibration">
+                                    <i class="fas fa-sliders-h text-primary me-3"></i> Model Calibration & Accuracy
+                                </button>
+                            </h2>
+                            <div id="collapseCalibration" class="accordion-collapse collapse show" aria-labelledby="headingCalibration" data-bs-parent="#accordionAbout">
+                                <div class="accordion-body px-0 pt-2 pb-4 text-muted">
+                                    <strong class="text-dark d-block mb-2">Precision-First Approach:</strong>
+                                    <p class="mb-2">We have calibrated the AI model with a strict <code>CONFIDENCE_THRESHOLD</code> of <strong>0.85</strong>. This high threshold is designed to:</p>
+                                    <ul class="mb-0" style="line-height: 1.7;">
+                                        <li>Minimize <strong>False Positives</strong> (incorrectly flagging good parts as defective).</li>
+                                        <li>Ensure that when a defect is flagged, it is with a high degree of certainty.</li>
+                                        <li>Reduce manual review workload by filtering out low-confidence "noise".</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item border-bottom">
+                            <h2 class="accordion-header" id="headingWorkflow">
+                                <button class="accordion-button collapsed fw-bold bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWorkflow" aria-expanded="false" aria-controls="collapseWorkflow">
+                                    <i class="fas fa-users-cog text-primary me-3"></i> Human-in-the-Loop Workflow
+                                </button>
+                            </h2>
+                            <div id="collapseWorkflow" class="accordion-collapse collapse" aria-labelledby="headingWorkflow" data-bs-parent="#accordionAbout">
+                                <div class="accordion-body px-0 pt-2 pb-4 text-muted">
+                                    <strong class="text-dark d-block mb-2">Verifying AI Judgments:</strong>
+                                    <p class="mb-2">Even the best AI can miss subtle defects. Our workflow incorporates a crucial manual verification step:</p>
+                                    <ol class="mb-0" style="line-height: 1.7;">
+                                        <li>The AI inspects the part and assigns a preliminary status (Defective/Non-Defective).</li>
+                                        <li>An <strong>Admin</strong> reviews the result in the standard Inspection Detail view.</li>
+                                        <li>If a subtle scratch was missed (False Negative), the Admin can manually toggle the status to 'Defective'.</li>
+                                        <li>This override is logged, ensuring 100% quality assurance before the part is shipped.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header" id="headingScalability">
+                                <button class="accordion-button collapsed fw-bold bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseScalability" aria-expanded="false" aria-controls="collapseScalability">
+                                    <i class="fas fa-chart-line text-primary me-3"></i> Scalability & Continuous Learning
+                                </button>
+                            </h2>
+                            <div id="collapseScalability" class="accordion-collapse collapse" aria-labelledby="headingScalability" data-bs-parent="#accordionAbout">
+                                <div class="accordion-body px-0 pt-2 pb-0 text-muted">
+                                    <strong class="text-dark d-block mb-2">Smarter Over Time:</strong>
+                                    <p class="mb-2">The system is built to improve with use through an AutoML feedback loop:</p>
+                                    <ul class="mb-0" style="line-height: 1.7;">
+                                        <li>Manually verified images (especially corrections) are automatically tagged as <strong>"High-Value Training Data"</strong>.</li>
+                                        <li>These images are collected to retrain the model, specifically targeting the types of defects the AI initially missed.</li>
+                                        <li>This creates a self-reinforcing cycle of improvement, increasing accuracy for future inspections.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-
-                <!-- Human-in-the-Loop Workflow -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingWorkflow">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapseWorkflow" aria-expanded="false" aria-controls="collapseWorkflow">
-                            <i class="fas fa-users-cog me-2"></i> Human-in-the-Loop Workflow
-                        </button>
-                    </h2>
-                    <div id="collapseWorkflow" class="accordion-collapse collapse" aria-labelledby="headingWorkflow"
-                        data-bs-parent="#accordionAbout">
-                        <div class="accordion-body">
-                            <strong>Verifying AI Judgments:</strong>
-                            <p>Even the best AI can miss subtle defects. Our workflow incorporates a crucial manual
-                                verification step:</p>
-                            <ol>
-                                <li>The AI inspects the part and assigns a preliminary status (Defective/Non-Defective).
-                                </li>
-                                <li>An <strong>Admin</strong> reviews the result in the standard Inspection Detail view.
-                                </li>
-                                <li>If a subtle scratch was missed (False Negative), the Admin can manually toggle the
-                                    status to 'Defective'.</li>
-                                <li>This override is logged, ensuring 100% quality assurance before the part is shipped.
-                                </li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Scalability & AutoML -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingScalability">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapseScalability" aria-expanded="false"
-                            aria-controls="collapseScalability">
-                            <i class="fas fa-chart-line me-2"></i> Scalability & Continuous Learning
-                        </button>
-                    </h2>
-                    <div id="collapseScalability" class="accordion-collapse collapse"
-                        aria-labelledby="headingScalability" data-bs-parent="#accordionAbout">
-                        <div class="accordion-body">
-                            <strong>Smarter Over Time:</strong>
-                            <p>The system is built to improve with use through an AutoML feedback loop:</p>
-                            <ul>
-                                <li>Manually verified images (especially corrections) are automatically tagged as
-                                    <strong>"High-Value Training Data"</strong>.</li>
-                                <li>These images are collected to retrain the model, specifically targeting the types of
-                                    defects the AI initially missed.</li>
-                                <li>This creates a self-reinforcing cycle of improvement, increasing accuracy for future
-                                    inspections.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
 
         <div class="col-lg-4">
-            <!-- User Roles Card -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <i class="fas fa-user-shield me-1"></i>
-                    User Roles & Permissions
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <div class="fw-bold"><i class="fas fa-user-astronaut me-2 text-danger"></i>Admin</div>
-                            <small class="text-muted">Full system control. Can manage users, inventory, and manually
-                                verify/override inspection results.</small>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="fw-bold"><i class="fas fa-user-tie me-2 text-primary"></i>Manager</div>
-                            <small class="text-muted">Focused on oversight. Access to Dashboard analytics, reports, and
-                                team performance metrics.</small>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="fw-bold"><i class="fas fa-user me-2 text-secondary"></i>Inspector</div>
-                            <small class="text-muted">Operational role. Can upload new inspections and view their own
-                                history.</small>
-                        </li>
-                    </ul>
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-shield-alt fs-5"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">Role Permissions</h5>
+                    </div>
+
+                    <div class="d-flex flex-column gap-4">
+                        
+                        <div class="d-flex align-items-start">
+                            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex justify-content-center align-items-center mt-1 me-3 flex-shrink-0" style="width: 38px; height: 38px;">
+                                <i class="fas fa-user-astronaut"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Administrator</h6>
+                                <p class="text-muted small mb-0" style="line-height: 1.5;">Full system control. Can manage users, inventory, and manually verify/override inspection results.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center mt-1 me-3 flex-shrink-0" style="width: 38px; height: 38px;">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Manager</h6>
+                                <p class="text-muted small mb-0" style="line-height: 1.5;">Focused on oversight. Access to Dashboard analytics, reports, and team performance metrics.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start">
+                            <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex justify-content-center align-items-center mt-1 me-3 flex-shrink-0" style="width: 38px; height: 38px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Inspector</h6>
+                                <p class="text-muted small mb-0" style="line-height: 1.5;">Operational role. Can upload new inspections and view their own history.</p>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 {% endblock %}

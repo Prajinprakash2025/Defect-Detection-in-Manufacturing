@@ -1,50 +1,88 @@
 {% extends 'base.html' %}
 
-{% block title %}Alerts{% endblock %}
+{% block title %}System Alerts | DetectAI{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">System Alerts</h1>
-</div>
+<div class="container-fluid px-0">
+    
+    <div class="mb-4 d-flex justify-content-between align-items-end flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fas fa-bell text-primary me-2"></i> System Alerts
+            </h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Review and monitor all automated defect alerts.</p>
+        </div>
+        
+        <span class="badge bg-warning bg-opacity-10 border border-warning border-opacity-25 px-3 py-2 rounded-pill d-flex align-items-center gap-2" style="color: #d97706 !important; font-weight: 600; font-size: 0.8rem;">
+            <i class="fas fa-triangle-exclamation"></i> Alerts Feed
+        </span>
+    </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Inspection</th>
-                        <th scope="col">Message</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for alert in alerts %}
-                    <tr class="{% if alert.status == 'Unread' %}table-warning{% endif %}">
-                        <td>#{{ alert.id }}</td>
-                        <td>
-                            <a href="#">Inspection #{{ alert.inspection.id }}</a>
-                        </td>
-                        <td>{{ alert.message }}</td>
-                        <td>
-                            {% if alert.alert_status == 'Unread' %}
-                            <span class="badge bg-warning text-dark">Unread</span>
-                            {% else %}
-                            <span class="badge bg-secondary">Read</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ alert.created_at|date:"M d, Y H:i" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-4">No alerts found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Inspection</th>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th class="pe-4 text-end">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in alerts %}
+                        <tr>
+                            <td class="ps-4 text-muted fw-semibold" style="font-size: 0.85rem;">
+                                #{{ alert.id }}
+                            </td>
+                            
+                            <td>
+                                <a href="{% url 'inspection_detail' alert.inspection.id %}" class="text-primary fw-bold text-decoration-none d-inline-flex align-items-center gap-1" style="font-size: 0.9rem;">
+                                    <i class="fas fa-link" style="font-size: 0.75rem;"></i>
+                                    Inspection #{{ alert.inspection.id }}
+                                </a>
+                            </td>
+                            
+                            <td class="text-dark" style="max-width: 320px; font-size: 0.9rem;">
+                                {{ alert.message }}
+                            </td>
+                            
+                            <td>
+                                {% if alert.alert_status == 'Unread' %}
+                                <span class="badge bg-warning bg-opacity-10 border border-warning border-opacity-25 px-2 py-1 rounded-pill" style="color: #d97706 !important; font-size: 0.7rem;">
+                                    <i class="fas fa-circle me-1" style="font-size: 0.4rem; vertical-align: middle;"></i>Unread
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                                    <i class="fas fa-check me-1"></i>Read
+                                </span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="pe-4 text-end text-muted" style="font-size: 0.85rem; white-space: nowrap;">
+                                {{ alert.created_at|date:"M d, Y H:i" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="text-muted">
+                                    <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px;">
+                                        <i class="fas fa-bell-slash fs-1 text-muted opacity-50"></i>
+                                    </div>
+                                    <h5 class="fw-bold text-dark">No Alerts Found</h5>
+                                    <p class="mb-0 small">The system has not generated any notifications or alerts yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+    
 </div>
 {% endblock %}

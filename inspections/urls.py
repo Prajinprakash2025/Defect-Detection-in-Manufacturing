@@ -13,5 +13,7 @@ urlpatterns = [
     path('export/', views.export_report, name='export_report'),
     # Add this line right above your export_report path:
     path('report-preview/', views.report_preview, name='report_preview'),
+    # Add this right next to your report_preview path!
+    path('export-pdf/', views.export_pdf_report, name='export_pdf'),  
     
 ]

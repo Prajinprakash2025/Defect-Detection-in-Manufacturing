@@ -1,64 +1,123 @@
 {% extends 'base.html' %}
 
-{% block title %}Report Preview{% endblock %}
+{% block title %}Report Preview | DetectAI{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-dark"><i class="fas fa-file-alt text-primary me-2"></i> Factory Inspection Report</h3>
+<div class="container-fluid px-0">
+
+    <div class="mb-4 d-flex justify-content-between align-items-end flex-wrap gap-3">
         <div>
-            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary me-2"><i class="fas fa-arrow-left me-2"></i>Back to Dashboard</a>
-            <a href="{% url 'export_report' %}" class="btn btn-success shadow-sm"><i class="fas fa-download me-2"></i>Confirm & Download CSV</a>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fas fa-file-alt text-primary me-2"></i> Report Preview
+            </h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Review the factory inspection data before exporting.</p>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <a href="{% url 'dashboard' %}" class="btn btn-light border text-muted d-flex align-items-center gap-2" style="border-radius: 8px; font-weight: 600;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a href="{% url 'export_report' %}" class="btn btn-success bg-opacity-10 text-success border border-success border-opacity-25 shadow-sm d-flex align-items-center gap-2" style="border-radius: 8px; font-weight: 600; background-color: rgba(16, 185, 129, 0.1);">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+            <a href="{% url 'export_pdf' %}" class="btn btn-primary shadow-sm d-flex align-items-center gap-2" style="border-radius: 8px; font-weight: 600;">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </a>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4 bg-light">
-        <div class="card-body">
-            <div class="row text-center">
-                <div class="col-md-6 border-end">
-                    <h5 class="text-muted mb-1">Total Items Scanned</h5>
-                    <h2 class="fw-bold text-dark">{{ total_scanned }}</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 h-100 bg-light bg-opacity-50">
+                <div class="card-body p-4 d-flex align-items-center justify-content-center gap-4">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style="width: 60px; height: 60px;">
+                        <i class="fas fa-search fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Total Items Scanned</div>
+                        <div class="fw-bold text-dark mb-0" style="font-size: 2.2rem; line-height: 1;">{{ total_scanned }}</div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <h5 class="text-muted mb-1">Total Defects Found</h5>
-                    <h2 class="fw-bold text-danger">{{ total_defective }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 h-100 bg-light bg-opacity-50">
+                <div class="card-body p-4 d-flex align-items-center justify-content-center gap-4">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style="width: 60px; height: 60px;">
+                        <i class="fas fa-triangle-exclamation fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-danger fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Total Defects Found</div>
+                        <div class="fw-bold text-danger mb-0" style="font-size: 2.2rem; line-height: 1;">{{ total_defective }}</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white border-0 pt-4">
-            <h5 class="fw-bold mb-0">Data Preview</h5>
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 p-4">
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="fas fa-table text-primary me-2"></i> Data Preview
+            </h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light sticky-top">
+                    <thead class="table-light sticky-top" style="z-index: 1;">
                         <tr>
                             <th scope="col" class="ps-4">ID</th>
                             <th scope="col">Batch Number</th>
                             <th scope="col">Prediction Label</th>
                             <th scope="col">Confidence</th>
                             <th scope="col">Status</th>
-                            <th scope="col">Date</th>
+                            <th scope="col">Date Scanned</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in inspections %}
                         <tr>
-                            <td class="ps-4 text-muted">#{{ item.id }}</td>
-                            <td class="fw-bold">{{ item.batch.batch_number }}</td>
-                            <td>{{ item.prediction_label }}</td>
-                            <td>{{ item.confidence_score|floatformat:2 }}</td>
+                            <td class="ps-4 text-muted fw-semibold" style="font-size: 0.85rem;">#{{ item.id }}</td>
+                            <td class="fw-bold text-dark" style="font-size: 0.9rem;">{{ item.batch.batch_number }}</td>
+                            <td class="text-dark" style="font-size: 0.9rem;">{{ item.prediction_label }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% with score=item.confidence_score|default:0 %}
+                                    <div class="progress bg-secondary bg-opacity-10" style="width: 50px; height: 6px; border-radius: 10px;">
+                                        <div class="progress-bar {% if score > 0.8 %}bg-success{% elif score > 0.6 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {% widthratio score 1 100 %}%; border-radius: 10px;">
+                                        </div>
+                                    </div>
+                                    <span class="text-muted fw-semibold" style="font-size: 0.8rem;">{{ score|floatformat:2 }}</span>
+                                    {% endwith %}
+                                </div>
+                            </td>
                             <td>
                                 {% if item.status == 'Defective' %}
-                                    <span class="badge bg-danger">Defective</span>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                                        <i class="fas fa-circle-xmark me-1"></i>Defective
+                                    </span>
                                 {% else %}
-                                    <span class="badge bg-success">Passed</span>
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                                        <i class="fas fa-circle-check me-1"></i>Passed
+                                    </span>
                                 {% endif %}
                             </td>
-                            <td>{{ item.timestamp|date:"M d, Y H:i" }}</td>
+                            <td class="text-muted" style="font-size: 0.85rem;">{{ item.timestamp|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted">
+                                    <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px;">
+                                        <i class="fas fa-folder-open fs-1 text-muted opacity-50"></i>
+                                    </div>
+                                    <h6 class="fw-bold text-dark">No Data Available</h6>
+                                    <p class="mb-0 small">There are no inspections available to export.</p>
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -66,5 +125,6 @@
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}

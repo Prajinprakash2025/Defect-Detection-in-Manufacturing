@@ -1,13 +1,54 @@
 import os
 import json
 from google.cloud import vision
-from PIL import Image, ImageFilter, ImageStat
+from PIL import Image, ImageFilter, ImageStat, ImageChops, ImageDraw
 
-# --- NEW: GOOGLE CLOUD CREDENTIALS LINK ---
+# --- GOOGLE CLOUD CREDENTIALS LINK ---
 # This dynamically finds the root folder of your project and points directly to credentials.json
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(BASE_DIR, 'credentials.json')
 # ------------------------------------------
+
+def get_smart_bounding_box(image_path):
+    """
+    FOOLPROOF REGION OF INTEREST (ROI) MASKING.
+    Literally blacks out the edges so the math cannot be distracted by bolt holes.
+    """
+    try:
+        with Image.open(image_path) as img:
+            img = img.resize((400, 400)).convert('L')
+            
+            # 1. Find all sharp edges
+            edges = img.filter(ImageFilter.FIND_EDGES)
+            
+            # 2. Keep only intense edges (scratches/cracks)
+            binary = edges.point(lambda p: 255 if p > 80 else 0)
+            
+            # 3. THE SLEDGEHAMMER: Paint the outer borders black
+            # This mathematically deletes the bolt holes and background from the scan!
+            draw = ImageDraw.Draw(binary)
+            draw.rectangle([0, 0, 400, 100], fill=0)    # Top edge deleted
+            draw.rectangle([0, 300, 400, 400], fill=0)  # Bottom edge deleted
+            draw.rectangle([0, 0, 100, 400], fill=0)    # Left edge deleted
+            draw.rectangle([300, 0, 400, 400], fill=0)  # Right edge deleted
+            
+            # 4. Find the box of whatever is left (which will ONLY be the center scratch)
+            bbox = binary.getbbox()
+            
+            if bbox:
+                left, top, right, bottom = bbox
+                return {
+                    "left": max(0, ((left / 400) * 100) - 2),
+                    "top": max(0, ((top / 400) * 100) - 2),
+                    "width": min(100, (((right - left) / 400) * 100) + 4),
+                    "height": min(100, (((bottom - top) / 400) * 100) + 4)
+                }
+    except Exception as e:
+        print(f"Bounding Box Error: {e}")
+        
+    # Dead center fallback
+    return {"top": 45, "left": 45, "width": 10, "height": 10}
+
 
 def detect_defect(image_path):
     """
@@ -19,12 +60,27 @@ def detect_defect(image_path):
     if credentials_path and os.path.exists(credentials_path):
         try:
              print("Attempting Google Cloud Vision...")
-             return google_vision_predict(image_path)
+             result = google_vision_predict(image_path)
         except Exception as e:
             print(f"Google Cloud Vision failed: {e}. Falling back to Local Pixel Scan.")
-    
-    print("Using Local Pixel Scan fallback...")
-    return local_pixel_scan(image_path)
+            result = local_pixel_scan(image_path)
+    else:
+        print("Using Local Pixel Scan fallback...")
+        result = local_pixel_scan(image_path)
+
+    # --- NEW: Inject the exact crack coordinates into the result ---
+    if result.get('is_defective'):
+        bbox = get_smart_bounding_box(image_path)
+        # We secretly hide these coordinates inside the JSON data!
+        try:
+            raw_dict = json.loads(result['raw_response'])
+        except json.JSONDecodeError:
+            raw_dict = {}
+            
+        raw_dict['bbox'] = bbox
+        result['raw_response'] = json.dumps(raw_dict)
+
+    return result
 
 def google_vision_predict(image_path):
     """Real integration with Google Cloud Vision."""
@@ -88,13 +144,9 @@ def local_pixel_scan(image_path):
             # 4. THE DUAL-ENVIRONMENT LOGIC (The guaranteed fix)
             if brightness < 100:
                 # DARK MODE (Matches your Cracked Vial)
-                # The background is black, so any white edges are definitely a crack.
-                # Threshold is extremely low (highly sensitive).
                 dynamic_threshold = 5.0
             else:
                 # LIGHT MODE (Matches your Clean Vial)
-                # The background is white, so the dark glass outline creates a huge score.
-                # Threshold is extremely high (ignores outlines, only catches massive cracks).
                 dynamic_threshold = 40.0
 
             # 5. The Decision

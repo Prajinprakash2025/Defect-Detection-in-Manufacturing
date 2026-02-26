@@ -7,6 +7,11 @@ from .forms import InspectionForm
 from .services.ai_service import detect_defect
 from PIL import Image, ImageEnhance
 import os
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from django.http import HttpResponse
+from django.core.mail import send_mail
+from django.conf import settings
 
 # --- CONFIGURATION ---
 # UPDATED: Increased to 0.95 to eliminate false positives from lighting/reflections
@@ -21,89 +26,117 @@ def upload_inspection(request):
         return redirect('dashboard')
 
     if request.method == 'POST':
-        form = InspectionForm(request.POST, request.FILES)
-        if form.is_valid():
-            inspection = form.save(commit=False)
-            inspection.uploaded_by = request.user
-            inspection.save()
+        # Get the batch ID and the LIST of uploaded images
+        batch_id = request.POST.get('batch')
+        images = request.FILES.getlist('images') # Notice we use getlist() for bulk uploads!
 
-            # --- Image Preprocessing (Pillow) ---
+        if not batch_id or not images:
+            messages.error(request, "Please select a batch and upload at least one image.")
+            return redirect('upload_inspection')
+
+        batch = get_object_or_404(Batch, id=batch_id)
+        
+        # Track our bulk results
+        defects_found = 0
+        passed_found = 0
+
+        # --- THE BULK UPLOAD LOOP ---
+        for img_file in images:
+            # 1. Create the Inspection Record
+            inspection = Inspection.objects.create(
+                batch=batch,
+                uploaded_by=request.user,
+                image=img_file
+            )
+
+            # 2. Image Preprocessing (Pillow)
             image_path = inspection.image.path
             try:
                 with Image.open(image_path) as img:
-                    # 1. Resize to standard square (640x640)
                     img = img.resize((640, 640))
-                    
-                    # 2. Contrast Enhancement
                     enhancer = ImageEnhance.Contrast(img)
-                    img = enhancer.enhance(1.2) # Slight enhancement (20%)
-                    
+                    img = enhancer.enhance(1.2) 
                     img.save(image_path)
             except Exception as e:
                 print(f"Preprocessing Error: {e}")
 
-            # --- Real AI Processing ---
-            # The system now ignores filenames and purely relies on the AI model
+            # 3. Real AI Processing
             print(f"Sending image to AI: {inspection.image.name}")
             ai_result = detect_defect(image_path)
             
-            # --- DEBUG LOGGING ---
-            print("AI RESULT:", ai_result)
-            # ---------------------
-
-            # Update Inspection Record
+            # 4. Update Inspection Record
             inspection.prediction_label = ai_result.get('label', 'Unknown')
             inspection.confidence_score = ai_result.get('confidence', 0.0)
             inspection.raw_prediction_json = ai_result.get('raw_response', '{}')
             
-            # Threshold Logic
-            # Requirement: If 'Detected' in label AND confidence >= 0.95 -> Defective
             label = inspection.prediction_label
             is_defective = ai_result.get('is_defective', False)
             confidence = float(ai_result.get('confidence', 0.0))
             
-            # Combined Logic: AI Flag OR Explicit "Detected" keyword, PLUS Threshold check
+            # Combined Logic: AI Flag OR Explicit "Detected" keyword
             if (is_defective or "Detected" in label) and confidence >= CONFIDENCE_THRESHOLD:
                 inspection.status = 'Defective'
+                defects_found += 1
             else:
                 inspection.status = 'Non-Defective'
-                # If AI said defective but confidence was low, we mark non-defective
-                if is_defective:
-                    print(f"Downgrading to Non-Defective due to low confidence: {confidence}")
+                passed_found += 1
 
             inspection.save()
 
-            # Create Defect Record if defective
+            # 5. Create Defect & Alert Records if defective
             if inspection.status == 'Defective':
-                defect_type = "Defect Detected" # Generic for now unless simplified
-                # Try to parse specific defect type if available in label
-                label = inspection.prediction_label.lower()
-                if "crack" in label: defect_type = "Crack"
-                elif "scratch" in label: defect_type = "Scratch"
-                elif "dent" in label: defect_type = "Dent"
-                elif "discoloration" in label: defect_type = "Discoloration"
+                defect_type = "Defect Detected"
+                label_lower = label.lower()
+                if "crack" in label_lower: defect_type = "Crack"
+                elif "scratch" in label_lower: defect_type = "Scratch"
+                elif "dent" in label_lower: defect_type = "Dent"
+                elif "discoloration" in label_lower: defect_type = "Discoloration"
                 
                 Defect.objects.create(
                     inspection=inspection,
                     defect_type=defect_type,
-                    severity='High' if inspection.confidence_score > 0.97 else 'Medium'
+                    severity='High' if confidence > 0.97 else 'Medium'
                 )
                 
-                # Create Alert
                 Alert.objects.create(
                     inspection=inspection,
-                    message=f"Defect '{defect_type}' detected in Batch {inspection.batch.batch_number} with {int(inspection.confidence_score*100)}% confidence.",
+                    message=f"Defect '{defect_type}' detected in Batch {batch.batch_number} with {int(confidence*100)}% confidence.",
                     alert_status='Unread'
                 )
-                messages.warning(request, f"Defect Detected! {inspection.prediction_label}")
-            else:
-                messages.success(request, "Inspection Passed. No defects detected.")
+        
+        # --- END OF LOOP ---
 
-            return redirect('inspection_list')
+        # Final Summary Notification & EMAIL TRIGGER
+        if defects_found > 0:
+            messages.warning(request, f"Bulk Scan Complete: {defects_found} defects found! {passed_found} passed.")
+            
+            # --- NEW: SEND EMERGENCY EMAIL ---
+            try:
+                subject = f"🚨 URGENT: Defects Detected in Batch {batch.batch_number}"
+                message = f"Factory Manager Alert,\n\nDuring the latest AI scan of Batch {batch.batch_number} ({batch.product.name}), the system detected {defects_found} defective items.\n\nPlease log in to the DetectAI Dashboard immediately to review the images and halt the production line if necessary.\n\n- DetectAI Automated System"
+                
+                # IMPORTANT: Put your own email in the brackets below so you receive the test alert!
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    ['YOUR_PERSONAL_EMAIL@gmail.com'], # <-- Replace with your real email!
+                    fail_silently=False,
+                )
+                print("Emergency email successfully sent to manager!")
+            except Exception as e:
+                print(f"Failed to send email: {e}")
+            # ---------------------------------
+            
+        else:
+            messages.success(request, f"Bulk Scan Complete: All {passed_found} items passed inspection.")
+
+        return redirect('inspection_list')
+
     else:
-        form = InspectionForm()
-    
-    return render(request, 'inspections/upload.html', {'form': form})
+        # Pass batches to the template for the dropdown menu
+        batches = Batch.objects.all()
+        return render(request, 'inspections/upload.html', {'batches': batches})
 
 @login_required
 def verify_result(request, pk):
@@ -339,3 +372,34 @@ def report_preview(request):
         'total_defective': defective,
     }
     return render(request, 'inspections/report_preview.html', context)
+
+
+
+@login_required
+def export_pdf_report(request):
+    # 1. Get the exact same data we use for the preview page
+    inspections = Inspection.objects.all().order_by('-timestamp')
+    total = inspections.count()
+    defective = inspections.filter(status='Defective').count()
+    
+    context = {
+        'inspections': inspections,
+        'total_scanned': total,
+        'total_defective': defective,
+    }
+    
+    # 2. Load a special, print-friendly HTML template
+    template = get_template('inspections/pdf_template.html')
+    html = template.render(context)
+    
+    # 3. Create the PDF response
+    response = HttpResponse(content_type='application/pdf')
+    # Change 'attachment' to 'inline' if you want it to open in the browser instead of downloading directly
+    response['Content-Disposition'] = 'attachment; filename="DetectAI_Factory_Report.pdf"'
+    
+    # 4. Convert HTML to PDF
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    
+    if pisa_status.err:
+        return HttpResponse('We had some errors generating the PDF')
+    return response

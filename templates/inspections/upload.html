@@ -1,137 +1,274 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Upload Inspection{% endblock %}
+{% block title %}New Inspection | DetectAI{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-6 offset-md-3">
-        
-        <div class="card shadow-sm mt-4 border-0 border-top border-success border-4 rounded-3">
-            <div class="card-body text-center py-4">
-                <h4 class="fw-bold text-dark mb-3">
-                    <i class="fas fa-camera text-success me-2"></i> Live Factory Scanner
-                </h4>
-                <p class="text-muted small mb-3">Select a batch in the form below, then turn on the camera to scan items in real-time.</p>
-                
-                <video id="live-camera" width="100%" style="max-width: 100%; border: 3px dashed #ccc; border-radius: 8px; display: none; margin: 0 auto;" autoplay playsinline></video>
-                
-                <canvas id="camera-canvas" style="display: none;"></canvas>
-                
-                <div class="mt-4">
-                    <button type="button" id="start-camera-btn" class="btn btn-outline-success px-4 py-2 fw-bold w-100">
-                        <i class="fas fa-video me-2"></i> Turn On Camera
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<style>
+    /* The only custom CSS needed: The HUD Recording Dot */
+    .pulse-dot {
+        width: 10px; height: 10px; border-radius: 50%; background: #0dcaf0; box-shadow: 0 0 8px #0dcaf0; animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+</style>
+
+<div class="mb-4 d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="fas fa-microscope text-primary me-2"></i> AI Inspection Console
+        </h2>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">Capture or upload product images for real-time AI defect analysis.</p>
+    </div>
+    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill d-flex align-items-center gap-2" style="font-weight: 700; font-size: 0.75rem;">
+        <i class="fas fa-circle-dot" style="font-size: 0.55rem;"></i> LIVE SYSTEM
+    </span>
+</div>
+
+<div class="row g-4 align-items-start">
+
+    <div class="col-lg-5">
+        <div class="card bg-dark text-light border-0 rounded-4 shadow-sm overflow-hidden">
+            
+            <div class="card-header bg-transparent border-bottom border-secondary border-opacity-25 p-4 d-flex align-items-center gap-3">
+                <div class="pulse-dot flex-shrink-0"></div>
+                <h5 class="fw-bold mb-0 text-info text-uppercase tracking-wide" style="letter-spacing: 1px; font-size: 0.95rem;">
+                    <i class="fas fa-camera me-2"></i> Live Factory Scanner
+                </h5>
+                <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-50 ms-auto" style="font-size: 0.65rem; letter-spacing: 1px;">HUD</span>
+            </div>
+            
+            <div class="card-body p-4">
+                <p class="text-secondary mb-4" style="font-size: 0.85rem;">
+                    Select a batch in the form, then activate the camera to scan products in real-time.
+                </p>
+
+                <div class="bg-black rounded-3 d-flex align-items-center justify-content-center position-relative mb-4 overflow-hidden" style="min-height: 250px; border: 2px dashed rgba(13, 202, 240, 0.4);">
+                    <div id="camera-placeholder" class="text-center text-secondary">
+                        <i class="fas fa-camera-slash fa-3x mb-2"></i>
+                        <p class="mb-0 small fw-semibold">Camera Inactive</p>
+                    </div>
+                    <video id="live-camera" class="w-100 h-100 object-fit-cover d-none" autoplay playsinline></video>
+                </div>
+
+                <canvas id="camera-canvas" class="d-none"></canvas>
+
+                <div class="d-grid gap-2 mb-4">
+                    <button type="button" id="start-camera-btn" class="btn btn-info fw-bold py-2 text-dark" style="border-radius: 8px;">
+                        <i class="fas fa-video me-2"></i> Turn On Inspection Camera
                     </button>
-                    <button type="button" id="capture-btn" class="btn btn-success px-4 py-2 fw-bold shadow w-100" style="display: none;">
+                    <button type="button" id="capture-btn" class="btn btn-success fw-bold py-2 text-white" style="display:none; border-radius: 8px;">
                         <i class="fas fa-crosshairs me-2"></i> Capture & Analyze
                     </button>
                 </div>
+
+                <div class="d-flex align-items-center gap-3 my-4 opacity-50">
+                    <hr class="flex-grow-1 border-secondary">
+                    <span class="text-secondary fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">or scan batch</span>
+                    <hr class="flex-grow-1 border-secondary">
+                </div>
+
+                <div class="bg-secondary bg-opacity-10 p-3 rounded-3 border border-secondary border-opacity-25">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fw-semibold text-light" style="font-size: 0.85rem;">
+                            <i class="fas fa-qrcode text-info me-2"></i> QR Auto-Select
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-info fw-bold" id="start-qr-btn" style="border-radius: 6px; font-size: 0.75rem;">
+                            <i class="fas fa-scan me-1"></i> Scan QR
+                        </button>
+                    </div>
+                    <div id="qr-reader" class="rounded-3 overflow-hidden mb-2 d-none" style="border: 2px solid rgba(13, 202, 240, 0.5);"></div>
+                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Point camera at a batch QR code to auto-select it in the form.</p>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="card shadow-sm mt-4 mb-5">
-            <div class="card-header bg-white">
-                <h4 class="mb-0"><i class="fas fa-upload text-primary me-2"></i> Or Upload Image File</h4>
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            
+            <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 p-4">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fas fa-upload text-primary me-2"></i> Upload Image File(s) for Analysis
+                </h5>
             </div>
-            <div class="card-body">
+            
+            <div class="card-body p-4 p-md-5">
                 <form method="post" enctype="multipart/form-data" id="uploadForm">
                     {% csrf_token %}
-                    {{ form.as_p }}
 
-                    {% if not form.batch.field.queryset.exists %}
-                    <div class="alert alert-warning">
-                        No batches found. <a href="{% url 'create_batch' %}">Create a Batch</a> before inspection.
+                    {% if not batches %}
+                    <div class="alert alert-warning border-0 shadow-sm rounded-3 d-flex align-items-center gap-3 p-4">
+                        <i class="fas fa-triangle-exclamation fs-2 text-warning"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1 text-dark">No active batches found.</h6>
+                            <p class="mb-0 small">Please <a href="{% url 'create_batch' %}" class="fw-bold text-warning text-decoration-none">create a Manufacturing Batch</a> before running an inspection.</p>
+                        </div>
                     </div>
                     {% else %}
-                    <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-primary fw-bold" type="submit" id="analyzeBtn">
-                            <i class="fas fa-microscope me-2"></i> Analyze Uploaded Image
+
+                    <div class="mb-4">
+                        <label for="batch" class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
+                            Manufacturing Batch <span class="text-danger">*</span>
+                        </label>
+                        <select name="batch" id="batch" class="form-select form-select-lg bg-light" style="border-radius: 8px; font-size: 0.95rem;" required>
+                            <option value="" disabled selected>— Choose a Manufacturing Batch —</option>
+                            {% for batch in batches %}
+                            <option value="{{ batch.id }}">{{ batch.batch_number }} ({{ batch.product.name }})</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text mt-2 text-muted" style="font-size: 0.8rem;">
+                            <i class="fas fa-lightbulb text-warning me-1"></i> Use the QR scanner on the left to auto-select a batch instantly.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="images" class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
+                            Product Images <span class="text-danger">*</span>
+                        </label>
+                        <input type="file" name="images" id="images" class="form-control form-control-lg bg-light" accept="image/*" multiple required style="border-radius: 8px; font-size: 0.95rem; cursor: pointer;">
+                        <div class="form-text mt-2 text-muted" style="font-size: 0.8rem;">
+                            <i class="fas fa-info-circle text-primary me-1"></i> Hold <kbd class="bg-secondary">Ctrl</kbd> or <kbd class="bg-secondary">Cmd</kbd> to select multiple images.
+                        </div>
+                    </div>
+
+                    <div class="bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 p-4 mb-4 d-flex gap-3 align-items-start">
+                        <i class="fas fa-robot text-primary fs-4 mt-1"></i>
+                        <div class="text-dark" style="font-size: 0.85rem; line-height: 1.6;">
+                            Images are automatically preprocessed (resized 640×640, contrast enhanced) before being sent to the <strong class="text-primary">Google AutoML Vision</strong> engine. Results include confidence scores and precise defect bounding boxes.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-2">
+                        <button class="btn btn-primary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" type="submit" id="analyzeBtn" style="border-radius: 10px;">
+                            <i class="fas fa-microscope"></i> Analyze Uploaded Image(s)
                         </button>
-                        <button class="btn btn-primary d-none fw-bold" type="button" id="loadingBtn" disabled>
-                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            AI Processing...
+                        
+                        <button class="btn btn-secondary btn-lg fw-bold d-none d-flex align-items-center justify-content-center gap-2" type="button" id="loadingBtn" disabled style="border-radius: 10px; cursor: not-allowed;">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            AI is Processing Batch...
                         </button>
                     </div>
+
                     {% endif %}
                 </form>
             </div>
+            
         </div>
-
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Traditional Form Loading Animation Logic
-    const uploadForm = document.getElementById('uploadForm');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const loadingBtn = document.getElementById('loadingBtn');
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- 1. Traditional Form Loading Animation Logic ---
+        const uploadForm = document.getElementById('uploadForm');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loadingBtn = document.getElementById('loadingBtn');
 
-    uploadForm.addEventListener('submit', function () {
-        analyzeBtn.classList.add('d-none');
-        loadingBtn.classList.remove('d-none');
-    });
-
-    // 2. Live Camera Logic
-    const video = document.getElementById('live-camera');
-    const canvas = document.getElementById('camera-canvas');
-    const startBtn = document.getElementById('start-camera-btn');
-    const captureBtn = document.getElementById('capture-btn');
-    
-    // Find Django's automatically generated file input and batch select
-    const fileInput = document.querySelector('input[type="file"]'); 
-    const batchSelect = document.querySelector('select[name="batch"]');
-
-    // Turn on the webcam
-    startBtn.addEventListener('click', async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            video.srcObject = stream;
-            video.style.display = 'block';
-            startBtn.style.display = 'none';
-            captureBtn.style.display = 'inline-block';
-        } catch (err) {
-            alert("Camera access denied! Please allow camera permissions in your browser.");
-            console.error("Camera Error:", err);
-        }
-    });
-
-    // Take the picture and automatically submit the Django form
-    captureBtn.addEventListener('click', () => {
-        // Safety Check: Did the user select a batch?
-        if (batchSelect && !batchSelect.value) {
-            alert("⚠️ Please select a Batch from the dropdown below before scanning!");
-            return;
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', function () {
+                analyzeBtn.classList.add('d-none');
+                loadingBtn.classList.remove('d-none');
+            });
         }
 
-        // Change the button to show it's working
-        captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing Scan...';
-        captureBtn.disabled = true;
+        // --- 2. Live Defect Camera Logic ---
+        const video = document.getElementById('live-camera');
+        const canvas = document.getElementById('camera-canvas');
+        const startBtn = document.getElementById('start-camera-btn');
+        const captureBtn = document.getElementById('capture-btn');
+        const fileInput = document.querySelector('input[type="file"]');
+        const batchSelect = document.querySelector('select[name="batch"]');
 
-        // Draw the current video frame onto the hidden canvas
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        
-        // Convert the canvas picture into a JPEG file
-        canvas.toBlob((blob) => {
-            const fileName = "live_scan_" + Date.now() + ".jpg";
-            const file = new File([blob], fileName, { type: "image/jpeg" });
-            
-            // Put the new file directly into Django's existing file input
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files;
-            
-            // Trigger the loading animation UI
-            analyzeBtn.classList.add('d-none');
-            loadingBtn.classList.remove('d-none');
+        if (startBtn) {
+            startBtn.addEventListener('click', async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    video.srcObject = stream;
+                    video.classList.remove('d-none');
+                    startBtn.style.display = 'none';
+                    captureBtn.style.display = 'inline-block';
+                    const placeholder = document.getElementById('camera-placeholder');
+                    if (placeholder) placeholder.classList.add('d-none');
+                } catch (err) {
+                    alert("Camera access denied! Please allow camera permissions in your browser.");
+                }
+            });
+        }
 
-            // Submit the form to your backend AI!
-            uploadForm.submit();
-            
-        }, 'image/jpeg', 0.95); 
+        if (captureBtn) {
+            captureBtn.addEventListener('click', () => {
+                if (batchSelect && !batchSelect.value) {
+                    alert("⚠️ Please select a Batch from the dropdown before scanning!");
+                    return;
+                }
+                captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing Scan...';
+                captureBtn.disabled = true;
+
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+
+                canvas.toBlob((blob) => {
+                    const fileName = "live_scan_" + Date.now() + ".jpg";
+                    const file = new File([blob], fileName, { type: "image/jpeg" });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+
+                    analyzeBtn.classList.add('d-none');
+                    loadingBtn.classList.remove('d-none');
+                    uploadForm.submit();
+                }, 'image/jpeg', 0.95);
+            });
+        }
+
+        // --- 3. QR Code Scanner Logic ---
+        const startQrBtn = document.getElementById("start-qr-btn");
+        let qrReader;
+
+        if (startQrBtn) {
+            startQrBtn.addEventListener("click", () => {
+                document.getElementById("qr-reader").classList.remove("d-none");
+                startQrBtn.style.display = "none";
+
+                qrReader = new Html5Qrcode("qr-reader");
+                qrReader.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText, decodedResult) => {
+                        console.log("Scanned:", decodedText);
+
+                        let found = false;
+                        for (let i = 0; i < batchSelect.options.length; i++) {
+                            if (batchSelect.options[i].text.includes(decodedText)) {
+                                batchSelect.selectedIndex = i;
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (found) {
+                            alert("✅ Batch " + decodedText + " automatically selected!");
+                        } else {
+                            alert("❌ Warning: Scanned QR code (" + decodedText + ") does not match any current batches.");
+                        }
+
+                        qrReader.stop().then(() => {
+                            document.getElementById("qr-reader").classList.add("d-none");
+                            startQrBtn.style.display = "inline-block";
+                        });
+                    },
+                    (errorMessage) => {
+                        // Scanning...
+                    }
+                ).catch((err) => {
+                    alert("Could not start camera for QR scanning. Please check permissions.");
+                    console.error(err);
+                });
+            });
+        }
     });
-});
 </script>
 {% endblock %}
