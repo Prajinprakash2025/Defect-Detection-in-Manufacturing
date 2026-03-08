@@ -13,11 +13,18 @@
             <p class="text-muted mb-0" style="font-size: 0.95rem;">Real-time production quality overview and analytics.</p>
         </div>
         
+        <div class="d-flex gap-2">
         {% if user.role == 'admin' or user.role == 'manager' %}
         <a href="{% url 'report_preview' %}" class="btn btn-primary shadow-sm d-flex align-items-center gap-2" style="border-radius: 10px;">
             <i class="fas fa-file-pdf"></i> Export Report
         </a>
         {% endif %}
+        {% if user.role == 'admin' or user.role == 'manager' %}
+        <a href="{% url 'signup' %}" class="btn btn-outline-primary shadow-sm d-flex align-items-center gap-2" style="border-radius: 10px;">
+            <i class="fas fa-user-plus"></i> Create User
+        </a>
+        {% endif %}
+        </div>
     </div>
 
     <div class="row g-3 mb-4">

@@ -11,19 +11,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260308">
 
     <style>
-        /* Specific overrides to perfectly center the Auth Cards */
-        body {
+        html {
+            overflow: auto !important;
+            height: auto !important;
+        }
+
+        /* Auth layout */
+        .auth-body {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: var(--bg-body);
+            background:
+                radial-gradient(130% 140% at 15% 20%, rgba(14, 165, 233, 0.16), transparent 42%),
+                radial-gradient(120% 120% at 85% 10%, rgba(16, 185, 129, 0.14), transparent 40%),
+                radial-gradient(90% 90% at 50% 85%, rgba(245, 158, 11, 0.10), transparent 45%),
+                var(--bg-body);
             position: relative;
-            overflow: hidden;
+            padding: 32px 18px;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         /* Ambient Premium Background Blurs */
@@ -38,21 +49,20 @@
         .blob-1 {
             top: -10%; left: -5%;
             width: 400px; height: 400px;
-            background: rgba(79, 70, 229, 0.35); /* Indigo */
+            background: rgba(14, 165, 233, 0.30); /* Cyan */
         }
         .blob-2 {
             bottom: -15%; right: -5%;
             width: 500px; height: 500px;
-            background: rgba(56, 189, 248, 0.25); /* Light Blue */
+            background: rgba(16, 185, 129, 0.20); /* Emerald */
         }
-        [data-bs-theme="dark"] .blob-1 { background: rgba(79, 70, 229, 0.15); }
-        [data-bs-theme="dark"] .blob-2 { background: rgba(56, 189, 248, 0.1); }
+        [data-bs-theme="dark"] .blob-1 { background: rgba(14, 165, 233, 0.16); }
+        [data-bs-theme="dark"] .blob-2 { background: rgba(16, 185, 129, 0.12); }
 
         /* The container that holds the Login/Register forms */
         .auth-container {
-            width: 100%;
-            max-width: 420px; /* Locks the login card to a sleek width */
-            padding: 1.5rem;
+            width: min(1100px, 100%);
+            padding: 1rem;
             z-index: 10;
         }
 
@@ -64,7 +74,7 @@
     </style>
 </head>
 
-<body>
+<body class="auth-body">
     <div class="ambient-blob blob-1"></div>
     <div class="ambient-blob blob-2"></div>
 

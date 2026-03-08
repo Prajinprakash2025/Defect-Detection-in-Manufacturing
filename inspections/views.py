@@ -12,10 +12,11 @@ from xhtml2pdf import pisa
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 # --- CONFIGURATION ---
-# UPDATED: Increased to 0.95 to eliminate false positives from lighting/reflections
-CONFIDENCE_THRESHOLD = 0.95 
+# UPDATED: Lowered to 0.50 to accommodate the newly trained Local Random Forest Machine Learning Model
+CONFIDENCE_THRESHOLD = 0.50 
 # ---------------------
 
 @login_required
@@ -243,6 +244,7 @@ def verify_result(request, pk):
 @login_required
 def inspection_list(request):
     inspections = Inspection.objects.all().order_by('-timestamp')
+    User = get_user_model()
     
     # Role-Based Filtering: Inspectors see only their own inspections
     if request.user.role == 'inspector':
@@ -256,6 +258,25 @@ def inspection_list(request):
     status = request.GET.get('status')
     batch_id = request.GET.get('batch')
     inspector = request.GET.get('inspector')
+    assignee = request.GET.get('assignee')
+    action = request.POST.get('action') if request.method == 'POST' else None
+
+    # Assignment action (admin/manager)
+    if action == 'assign' and request.user.role in ['admin', 'manager']:
+        ins_id = request.POST.get('inspection_id')
+        user_id = request.POST.get('assignee_id')
+        if ins_id and user_id:
+            try:
+                ins = Inspection.objects.get(id=ins_id)
+                assignee_user = User.objects.get(id=user_id)
+                ins.assigned_to = assignee_user
+                ins.save()
+                messages.success(request, f"Assigned inspection #{ins.id} to {assignee_user.username}.")
+            except Inspection.DoesNotExist:
+                messages.error(request, "Inspection not found.")
+            except User.DoesNotExist:
+                messages.error(request, "User not found.")
+        return redirect('inspection_list')
 
     if date_from:
         inspections = inspections.filter(timestamp__date__gte=date_from)
@@ -267,10 +288,13 @@ def inspection_list(request):
         inspections = inspections.filter(batch_id=batch_id)
     if inspector:
         inspections = inspections.filter(uploaded_by__username__icontains=inspector)
+    if assignee:
+        inspections = inspections.filter(assigned_to__id=assignee)
 
     context = {
         'inspections': inspections,
         'batches': batches,
+        'users': User.objects.all(),
     }
     return render(request, 'inspections/list.html', context)
 
@@ -293,8 +317,26 @@ def delete_inspection(request, pk):
         messages.success(request, "Inspection deleted successfully.")
         return redirect('inspection_list')
     
-    # If GET, show confirmation page (or just redirect if using modal/post form directly)
-    # For now, we will handle deletion via POST form in the list view for safety.
+    return redirect('inspection_list')
+
+@login_required
+def bulk_delete_inspections(request):
+    # Strict Role Check: Only Admin can delete
+    if request.user.role != 'admin':
+        messages.error(request, "Permission Denied: Only Admins can delete inspections.")
+        return redirect('inspection_list')
+        
+    if request.method == 'POST':
+        inspection_ids = request.POST.getlist('inspection_ids')
+        if inspection_ids:
+            inspections_to_delete = Inspection.objects.filter(id__in=inspection_ids)
+            count = inspections_to_delete.count()
+            inspections_to_delete.delete()
+            if count > 0:
+                messages.success(request, f"Successfully deleted {count} inspection(s).")
+        else:
+            messages.warning(request, "No inspections were selected for deletion.")
+            
     return redirect('inspection_list')
 
 @login_required

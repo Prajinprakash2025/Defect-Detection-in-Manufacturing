@@ -99,7 +99,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # --- AUTHENTICATION REDIRECTS ---
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_REDIRECT_URL = 'role_redirect'
 LOGOUT_REDIRECT_URL = 'login'
 
 # --- EMAIL ALERT CONFIGURATION ---

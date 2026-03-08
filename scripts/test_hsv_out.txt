@@ -1,0 +1,6 @@
+﻿live_scan_1772343092420.jpg: Skin=14.1%, Yellow=3.8%
+defect_image.jpg: Skin=11.1%, Yellow=71.4%
+images.jfif: Skin=27.7%, Yellow=12.9%
+
+--- Testing Hand Image Again ---
+uploaded_media_1772343014834.png: Skin=11.0%, Yellow=2.1%

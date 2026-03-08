@@ -1,43 +1,62 @@
 {% extends 'base_auth.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Secure Login | DetectAI{% endblock %}
+{% block title %}Sign In | DetectAI{% endblock %}
 
 {% block content %}
-<div class="card shadow border-0 rounded-4 overflow-hidden">
+<div class="auth-shell">
     
-    <div class="card-header bg-transparent border-0 text-center pt-5 pb-0">
-        <div class="d-inline-flex justify-content-center align-items-center rounded-circle bg-primary bg-opacity-10 text-primary mb-3" style="width: 72px; height: 72px;">
-            <i class="fas fa-microscope fa-2x"></i>
+    <div class="auth-aside">
+        <div class="aside-top">
+            <span class="badge-soft">DetectAI Console</span>
+            <h2>Quality in milliseconds.</h2>
+            <p>Edge vision + cloud intelligence keeps every line visible, prioritized, and audit-ready.</p>
         </div>
-        <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">DetectAI</h3>
-        <p class="text-muted small fw-medium text-uppercase tracking-wide" style="letter-spacing: 1px;">Intelligent Quality Assurance</p>
-    </div>
-    
-    <div class="card-body px-4 px-sm-5 pt-3 pb-4">
-        <h6 class="text-center text-muted mb-4 small">Sign in with your organizational ID</h6>
-        
-        <form method="post" action="{% url 'login' %}">
-            {% csrf_token %}
-            
-            <div class="mb-3">
-                {{ form|crispy }}
+
+        <div class="aside-metrics">
+            <div class="mini-chip">
+                <span>99.4%</span>
+                <small>catch-rate</small>
             </div>
+            <div class="mini-chip">
+                <span>24/7</span>
+                <small>line coverage</small>
+            </div>
+            <div class="mini-chip">
+                <span>42 ms</span>
+                <small>per-piece inference</small>
+            </div>
+        </div>
 
-            <input type="hidden" name="next" value="{% if next %}{{ next }}{% else %}{% url 'dashboard' %}{% endif %}">
+        <ul class="bullet-list">
+            <li><i class="fas fa-check-circle"></i> Vision packs for metals, plastics, PCB lines</li>
+            <li><i class="fas fa-bell"></i> Live alerts to Teams, Slack, andons, SMS</li>
+            <li><i class="fas fa-shield-halved"></i> Role-based access and full traceability</li>
+        </ul>
+    </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2 mt-2 fw-bold d-flex justify-content-center align-items-center gap-2" style="border-radius: 10px;">
-                Access System <i class="fas fa-arrow-right"></i>
+    <div class="auth-main">
+        <div class="auth-main-head">
+            <p class="eyebrow">Welcome back</p>
+            <h3>Secure console sign in</h3>
+            <p class="muted small mb-0">Use your organizational credentials to continue.</p>
+        </div>
+        
+        <form method="post" action="{% url 'login' %}" class="auth-form">
+            {% csrf_token %}
+            {{ form|crispy }}
+
+            <input type="hidden" name="next" value="{% if next %}{{ next }}{% else %}{% url 'role_redirect' %}{% endif %}">
+
+            <button type="submit" class="btn btn-primary w-100 py-2 auth-btn d-flex justify-content-center align-items-center gap-2">
+                Access system <i class="fas fa-arrow-right"></i>
             </button>
         </form>
-    </div>
-    
-    <div class="card-footer bg-light border-0 text-center py-4">
-        <p class="small text-muted mb-0">
-            Need inspection access? <br>
-            <a href="{% url 'signup' %}" class="fw-bold text-primary text-decoration-none mt-1 d-inline-block">Request an Account</a>
+
+        <p class="auth-footer-text text-muted small">
+            Don’t have access? Contact an admin to provision your account.
         </p>
     </div>
-    
+
 </div>
 {% endblock %}

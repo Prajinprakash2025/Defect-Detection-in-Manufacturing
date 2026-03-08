@@ -11,6 +11,7 @@ class Inspection(models.Model):
 
     batch = models.ForeignKey(Batch, on_delete=models.CASCADE, related_name='inspections')
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_inspections')
     image = models.ImageField(upload_to='inspection_images/')
     prediction_label = models.CharField(max_length=100, blank=True, null=True)
     confidence_score = models.FloatField(blank=True, null=True)

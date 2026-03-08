@@ -8,16 +8,22 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 def home(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
-    return render(request, 'registration/login.html')
+        return redirect('role_redirect')
+    return render(request, 'home.html')
+
+def role_redirect(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    if request.user.role == 'inspector':
+        return redirect('inspector_dashboard')
+    return redirect('dashboard')
 
 @login_required
 def dashboard(request):
     # Base Query
+    base_qs = Inspection.objects.all()
     if request.user.role == 'inspector':
-        base_qs = Inspection.objects.filter(uploaded_by=request.user)
-    else:
-        base_qs = Inspection.objects.all()
+        base_qs = base_qs.filter(uploaded_by=request.user)
 
     # Summary Cards
     total_inspections = base_qs.count()
@@ -120,6 +126,28 @@ def dashboard(request):
     }
 
     return render(request, 'dashboard/dashboard.html', context)
+
+@login_required
+def inspector_dashboard(request):
+    if request.user.role != 'inspector':
+        return redirect('dashboard')
+
+    base_qs = Inspection.objects.filter(uploaded_by=request.user)
+    total_inspections = base_qs.count()
+    total_defects = base_qs.filter(status='Defective').count()
+    defect_rate = (total_defects / total_inspections * 100) if total_inspections > 0 else 0
+    pending_alerts = Alert.objects.filter(alert_status='Unread').count()
+
+    recent_inspections = base_qs.order_by('-timestamp')[:5]
+
+    context = {
+        'total_inspections': total_inspections,
+        'total_defects': total_defects,
+        'defect_rate': round(defect_rate, 2),
+        'pending_alerts': pending_alerts,
+        'recent_inspections': recent_inspections,
+    }
+    return render(request, 'dashboard/inspector_dashboard.html', context)
 
 @login_required
 def about(request):

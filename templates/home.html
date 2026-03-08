@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DetectAI | Intelligent Quality Assurance</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260308">
+    <style>
+        /* Force page scrolling on the landing view */
+        html { overflow: auto !important; height: auto !important; }
+
+        /* Critical fallback styles (in case cached CSS is stale) */
+        body.landing-body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background:
+                radial-gradient(120% 120% at 15% 15%, rgba(6, 182, 212, 0.18), transparent 45%),
+                radial-gradient(110% 110% at 85% 12%, rgba(16, 185, 129, 0.16), transparent 40%),
+                radial-gradient(80% 80% at 50% 90%, rgba(245, 158, 11, 0.12), transparent 45%),
+                #f8fafc;
+            color: #0f172a;
+        }
+        .landing-shell { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
+        .landing-nav {
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+            background: rgba(255,255,255,0.95); border: 1px solid #e2e8f0; border-radius: 14px;
+            padding: 0.85rem 1.25rem; box-shadow: 0 10px 25px rgba(15,23,42,0.08);
+        }
+        .brand-mark { display: flex; align-items: center; gap: 0.65rem; }
+        .brand-icon { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg,#0ea5e9,#2563eb); color: #fff; display: grid; place-items: center; }
+        .brand-name { font-weight: 800; letter-spacing: -0.02em; }
+        .brand-subtitle { font-size: 0.8rem; color: #64748b; }
+        .nav-links a { color: #475569; font-weight: 600; margin-right: 1rem; text-decoration: none; }
+        .nav-actions { display: flex; align-items: center; gap: 0.65rem; }
+        .btn-solid, .btn-ghost {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            border-radius: 12px; font-weight: 700; padding: 0.75rem 1.25rem; text-decoration: none;
+        }
+        .btn-solid { background: linear-gradient(135deg,#0ea5e9,#2563eb); color: #fff; border: 1px solid transparent; }
+        .btn-ghost { border: 1px solid #e2e8f0; color: #0f172a; background: transparent; }
+        .btn-solid.small, .btn-ghost.small { padding: 0.55rem 1rem; border-radius: 10px; }
+        .hero-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap: 2.5rem; align-items: center; margin-top: 2.5rem; }
+        .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 0.35rem 0.65rem; border-radius: 999px; background: #e0f2fe; color: #0ea5e9; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; }
+        .hero-title { font-size: clamp(2.2rem,4vw,3.2rem); line-height: 1.1; letter-spacing: -0.02em; margin: 1rem 0 0.5rem; font-weight: 800; }
+        .hero-subtitle { color: #64748b; font-size: 1rem; max-width: 640px; }
+        .hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1.25rem 0; }
+        .hero-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .meta-chip { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.85rem 1rem; min-width: 170px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .glass-panel { background: #fff; border: 1px solid rgba(15,23,42,0.05); border-radius: 18px; padding: 1.25rem; box-shadow: 0 25px 60px rgba(15,23,42,0.12); }
+        .visual-top { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 0.45rem 0.75rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid rgba(15,23,42,0.08); }
+        .status-pill.success { background: #ecfdf3; color: #0f5132; border-color: #bbf7d0; }
+        .status-pill.neutral { background: #eef2ff; color: #312e81; border-color: #e0e7ff; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 1rem; margin-top: 1.5rem; }
+        .feature-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .workflow-rail { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 1rem; margin-top: 1.25rem; }
+        .cta-panel { margin: 2.5rem 0 0; background: linear-gradient(135deg,#0f172a,#0b2a49); color: #e5e7eb; border-radius: 16px; padding: 1.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    </style>
+</head>
+
+<body class="landing-body">
+    <div class="landing-shell">
+        <header class="landing-nav">
+            <div class="brand-mark">
+                <div class="brand-icon"><i class="fas fa-microscope"></i></div>
+                <div>
+                    <div class="brand-name">DetectAI</div>
+                    <div class="brand-subtitle">Quality Intelligence</div>
+                </div>
+            </div>
+
+            <nav class="nav-links d-none d-md-flex">
+                <a href="#features">Capabilities</a>
+                <a href="#workflow">Workflow</a>
+                <a href="#trust">Reliability</a>
+            </nav>
+
+            <div class="nav-actions">
+                <a class="btn-solid small" href="{% url 'login' %}">Access console</a>
+            </div>
+        </header>
+
+        <main>
+            <section class="hero-grid">
+                <div class="hero-copy">
+                    <span class="hero-eyebrow">Computer vision for production floors</span>
+                    <h1 class="hero-title">Catch defects before they move downstream.</h1>
+                    <p class="hero-subtitle">
+                        DetectAI pairs edge cameras with cloud intelligence to give operators a live, prioritized view
+                        of every part leaving the station—no more blind spots or late surprises.
+                    </p>
+                    <div class="hero-cta">
+                        <a class="btn-solid" href="{% url 'login' %}">Access console</a>
+                    </div>
+                    <div class="hero-meta">
+                        <div class="meta-chip">
+                            <span>99.4%</span>
+                            <small>vision catch-rate on pilot lines</small>
+                        </div>
+                        <div class="meta-chip">
+                            <span><i class="fas fa-bolt"></i> under 60s</span>
+                            <small>alert latency camera ➜ action</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-visual glass-panel">
+                    <div class="visual-top">
+                        <span class="status-pill success"><i class="fas fa-circle-dot"></i> Line 4 • Live</span>
+                        <span class="status-pill neutral"><i class="fas fa-shield-check"></i> AES-256 secured</span>
+                    </div>
+
+                    <div class="visual-feed">
+                        <div class="feed-metric">
+                            <div class="metric-label">Per-piece inference</div>
+                            <div class="metric-value">42 ms</div>
+                            <small>Edge GPU · 8 models</small>
+                        </div>
+                        <div class="feed-metric">
+                            <div class="metric-label">Defects flagged</div>
+                            <div class="metric-value text-warning">12</div>
+                            <small>3 critical · routed to rework</small>
+                        </div>
+                        <div class="feed-metric">
+                            <div class="metric-label">Drift monitor</div>
+                            <div class="metric-value text-success">Stable</div>
+                            <small>Auto-calibrated 17:20 IST</small>
+                        </div>
+                    </div>
+
+                    <div class="visual-list">
+                        <div class="list-row">
+                            <div>
+                                <div class="list-title">Surface crack • Casing</div>
+                                <small>Confidence 0.97 · Auto-sorted to rework</small>
+                            </div>
+                            <span class="list-badge warning">Critical</span>
+                        </div>
+                        <div class="list-row">
+                            <div>
+                                <div class="list-title">Paint blemish • Panel</div>
+                                <small>Confidence 0.82 · Operator review</small>
+                            </div>
+                            <span class="list-badge neutral">Queued</span>
+                        </div>
+                        <div class="list-row">
+                            <div>
+                                <div class="list-title">Missing screw • Sub-assembly</div>
+                                <small>Confidence 0.88 · Rejected automatically</small>
+                            </div>
+                            <span class="list-badge success">Resolved</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features" class="section-pad">
+                <div class="section-head">
+                    <p class="eyebrow">Built for production realities</p>
+                    <h2>Less configuring, more catching.</h2>
+                    <p class="muted">Deploy on metal, plastics, PCB, or assembly lines with pre-trained packs and a secure cloud console.</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon sky"><i class="fas fa-bullseye"></i></div>
+                        <h5>Edge-first vision</h5>
+                        <p>Run multiple models on a single edge box with automatic fallbacks and heartbeat checks.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon amber"><i class="fas fa-wave-square"></i></div>
+                        <h5>Live alerting</h5>
+                        <p>Critical defects trigger instant alerts to Teams, Slack, andons, or SMS—under 60 seconds end-to-end.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon green"><i class="fas fa-layer-group"></i></div>
+                        <h5>Traceability baked-in</h5>
+                        <p>Every image, decision, and operator note is versioned for audits and continuous improvement.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon purple"><i class="fas fa-lock"></i></div>
+                        <h5>Enterprise security</h5>
+                        <p>SAML/SSO, role-based access, and encrypted media flows keep your production data protected.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="workflow" class="workflow section-pad">
+                <div class="section-head">
+                    <p class="eyebrow">How teams use DetectAI</p>
+                    <h2>From capture to action in three steps.</h2>
+                </div>
+                <div class="workflow-rail">
+                    <div class="workflow-step">
+                        <div class="step-index">1</div>
+                        <div>
+                            <h6>Capture</h6>
+                            <p class="muted">Edge cameras stream to the GPU box; models auto-select by product and batch.</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-index">2</div>
+                        <div>
+                            <h6>Detect</h6>
+                            <p class="muted">Multi-model ensemble flags anomalies and calibrates confidence with recent line data.</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-index">3</div>
+                        <div>
+                            <h6>Decide</h6>
+                            <p class="muted">Send rework/hold commands, notify owners, and export traceable reports to QA.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="trust" class="cta-panel">
+                <div>
+                    <p class="eyebrow text-light mb-2">Ready for your line</p>
+                    <h3 class="mb-2 text-white">Go live with production-grade quality gates.</h3>
+                    <p class="text-light mb-0">Start with a secure console login or request an operator workspace.</p>
+                </div>
+                <div class="cta-actions">
+                    <a class="btn-solid inverted" href="{% url 'login' %}">Access console</a>
+                    <a class="btn-ghost inverted" href="{% url 'login' %}">Access console</a>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

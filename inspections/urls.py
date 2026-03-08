@@ -6,6 +6,7 @@ urlpatterns = [
     path('user-management/change-role/<int:pk>/', views.change_user_role, name='change_user_role'),
     path('upload/', views.upload_inspection, name='upload_inspection'),
     path('list/', views.inspection_list, name='inspection_list'),
+    path('bulk-delete/', views.bulk_delete_inspections, name='bulk_delete_inspections'),
     path('<int:pk>/', views.inspection_detail, name='inspection_detail'),
     path('delete/<int:pk>/', views.delete_inspection, name='delete_inspection'),
     path('verify/<int:pk>/', views.verify_result, name='verify_result'),

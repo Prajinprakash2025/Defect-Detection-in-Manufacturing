@@ -1,48 +1,60 @@
-{% extends 'base_auth.html' %}
+﻿{% extends 'base_auth.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Request Access | DetectAI{% endblock %}
+{% block title %}Provision Account | DetectAI{% endblock %}
 
 {% block content %}
-<style>
-    /* HIDE THE UNNECESSARY DJANGO PASSWORD RULES */
-    .helptext, .form-text, ul.errorlist.nonfield {
-        display: none !important;
-    }
-</style>
-
-<div class="card shadow border-0 rounded-4 overflow-hidden">
+<div class="auth-shell">
     
-    <div class="card-header bg-transparent border-0 text-center pt-5 pb-0">
-        <div class="d-inline-flex justify-content-center align-items-center rounded-circle bg-primary bg-opacity-10 text-primary mb-3" style="width: 72px; height: 72px;">
-            <i class="fas fa-user-shield fa-2x"></i>
+    <div class="auth-aside">
+        <div class="aside-top">
+            <span class="badge-soft">Provision access</span>
+            <h2>Bring your line onto DetectAI.</h2>
+            <p>Set up operator roles, connect cameras, and keep every inspection auditable from day one.</p>
         </div>
-        <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">Request Access</h3>
-        <p class="text-muted small fw-medium text-uppercase tracking-wide" style="letter-spacing: 1px;">DetectAI Quality Assurance</p>
-    </div>
-    
-    <div class="card-body px-4 px-sm-5 pt-3 pb-4">
-        <h6 class="text-center text-muted mb-4 small">Register your organizational profile</h6>
-        
-        <form method="post" onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\'fas fa-spinner fa-spin me-2\'></i> Provisioning Account...';">
-            {% csrf_token %}
-            
-            <div class="mb-3">
-                {{ form|crispy }}
-            </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2 mt-3 fw-bold d-flex justify-content-center align-items-center gap-2" style="border-radius: 10px;">
-                Submit Registration <i class="fas fa-check-circle"></i>
+        <div class="aside-metrics">
+            <div class="mini-chip">
+                <span>72 hrs</span>
+                <small>typical go-live</small>
+            </div>
+            <div class="mini-chip">
+                <span>Audit</span>
+                <small>full traceability</small>
+            </div>
+            <div class="mini-chip">
+                <span>SSO</span>
+                <small>enterprise ready</small>
+            </div>
+        </div>
+
+        <ul class="bullet-list">
+            <li><i class="fas fa-layer-group"></i> Model library for metal, plastics, PCB, assembly</li>
+            <li><i class="fas fa-shield-check"></i> SAML/SSO and role-based controls</li>
+            <li><i class="fas fa-file-circle-check"></i> Versioned evidence for audits and CAPA</li>
+        </ul>
+    </div>
+
+    <div class="auth-main">
+        <div class="auth-main-head">
+            <p class="eyebrow">Admin/Manager Only</p>
+            <h3>Create user credentials</h3>
+            <p class="muted small mb-0">Provision a user and share the password securely yourself.</p>
+        </div>
+        
+        <form method="post" class="auth-form" onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\'fas fa-spinner fa-spin me-2\'></i> Provisioning...';">
+            {% csrf_token %}
+            {{ form|crispy }}
+
+            <button type="submit" class="btn btn-primary w-100 py-2 auth-btn d-flex justify-content-center align-items-center gap-2">
+                Submit request <i class="fas fa-check-circle"></i>
             </button>
         </form>
-    </div>
-    
-    <div class="card-footer bg-light border-0 text-center py-4">
-        <p class="small text-muted mb-0">
-            Already have system access? <br>
-            <a href="{% url 'login' %}" class="fw-bold text-primary text-decoration-none mt-1 d-inline-block">Return to Secure Login</a>
+
+        <p class="auth-footer-text">
+            Need help? Contact an admin.
         </p>
     </div>
-    
+
 </div>
 {% endblock %}

@@ -1,13 +1,70 @@
 import os
 import json
-from google.cloud import vision
+import joblib
+import numpy as np
 from PIL import Image, ImageFilter, ImageStat, ImageChops, ImageDraw
 
-# --- GOOGLE CLOUD CREDENTIALS LINK ---
-# This dynamically finds the root folder of your project and points directly to credentials.json
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(BASE_DIR, 'credentials.json')
-# ------------------------------------------
+MODEL_PATH = os.path.join(BASE_DIR, 'ml_models', 'defect_classifier.pkl')
+
+def is_invalid_capture(features):
+    """
+    Lightweight heuristic to reject images that clearly are not product scans.
+    Tuned on recent false positives (rooms/hands/blank shots).
+    """
+    brightness, edge_score, r_avg, g_avg, b_avg, skin_ratio = features
+
+    # 1) Almost no edge information -> likely blank/blurred frame
+    if edge_score < 18:
+        return True, "too_low_edge_detail"
+
+    # 2) Human/scene tones with low texture (rooms, hands in frame)
+    if skin_ratio > 0.28 and edge_score < 35 and brightness < 120:
+        return True, "non_product_scene_detected"
+
+    return False, None
+
+def extract_features_for_inference(image_path):
+    """
+    Extracts numerical features from an image to feed the ML model.
+    Matches the exact logic used in `train_local_model.py`.
+    """
+    with Image.open(image_path) as img:
+        # 1. Luminance (Brightness)
+        gray_img = img.resize((400, 400)).convert('L')
+        brightness = ImageStat.Stat(gray_img).mean[0]
+        
+        # 2. Texture / Edges
+        edges = gray_img.filter(ImageFilter.FIND_EDGES)
+        edge_score = ImageStat.Stat(edges).stddev[0]
+        
+        # 3. Color Profile (RGB Averages)
+        img_rgb = img.convert('RGB')
+        img_rgb.thumbnail((150, 150))
+        stat = ImageStat.Stat(img_rgb)
+        r_avg, g_avg, b_avg = stat.mean
+        
+        # 4. Skin Tone Ratio
+        pixels = img_rgb.load()
+        w, h = img_rgb.size
+        skin_pixels = 0
+        for x in range(w):
+            for y in range(h):
+                r, g, b = pixels[x, y]
+                if (r > 60 and g > 40 and b > 20 and
+                    max(r, g, b) - min(r, g, b) > 10 and
+                    r > g and r > b):
+                    skin_pixels += 1
+        skin_ratio = skin_pixels / (w * h)
+        
+        return [brightness, edge_score, r_avg, g_avg, b_avg, skin_ratio]
+
+def load_local_ml_model():
+    """Loads the compiled Scikit-Learn `.pkl` model from disk."""
+    if not os.path.exists(MODEL_PATH):
+        raise FileNotFoundError("Local ML Model not found! Please run `scripts/train_local_model.py` first.")
+    return joblib.load(MODEL_PATH)
+
 
 def get_smart_bounding_box(image_path):
     """
@@ -49,128 +106,87 @@ def get_smart_bounding_box(image_path):
     # Dead center fallback
     return {"top": 45, "left": 45, "width": 10, "height": 10}
 
-
 def detect_defect(image_path):
     """
     Main entry point for defect detection.
-    Prioritizes Google Cloud Vision > Local Pixel Scan.
-    """
-    credentials_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
-
-    if credentials_path and os.path.exists(credentials_path):
-        try:
-             print("Attempting Google Cloud Vision...")
-             result = google_vision_predict(image_path)
-        except Exception as e:
-            print(f"Google Cloud Vision failed: {e}. Falling back to Local Pixel Scan.")
-            result = local_pixel_scan(image_path)
-    else:
-        print("Using Local Pixel Scan fallback...")
-        result = local_pixel_scan(image_path)
-
-    # --- NEW: Inject the exact crack coordinates into the result ---
-    if result.get('is_defective'):
-        bbox = get_smart_bounding_box(image_path)
-        # We secretly hide these coordinates inside the JSON data!
-        try:
-            raw_dict = json.loads(result['raw_response'])
-        except json.JSONDecodeError:
-            raw_dict = {}
-            
-        raw_dict['bbox'] = bbox
-        result['raw_response'] = json.dumps(raw_dict)
-
-    return result
-
-def google_vision_predict(image_path):
-    """Real integration with Google Cloud Vision."""
-    client = vision.ImageAnnotatorClient()
-
-    with open(image_path, "rb") as image_file:
-        content = image_file.read()
-
-    image = vision.Image(content=content)
-    response = client.label_detection(image=image)
-    labels = response.label_annotations
-
-    raw_response = {
-        'labels': [{'description': label.description, 'score': label.score} for label in labels]
-    }
-
-    is_defective = False
-    confidence = 0.0
-    detected_label = "Non-Defective"
-
-    DEFECT_KEYWORDS = ['defect', 'crack', 'scratch', 'damage', 'broken', 'dent']
-
-    for label in labels:
-        if any(keyword in label.description.lower() for keyword in DEFECT_KEYWORDS):
-            is_defective = True
-            confidence = label.score
-            detected_label = label.description
-            break
-            
-    if not is_defective and labels:
-        confidence = labels[0].score
-        detected_label = labels[0].description
-
-    return {
-        'label': detected_label,
-        'confidence': confidence,
-        'is_defective': is_defective,
-        'raw_response': json.dumps(raw_response)
-    }
-
-def local_pixel_scan(image_path):
-    """
-    Analyzes pixels using a Dual-Environment Pipeline.
-    Uses completely different math depending on the background lighting.
+    Now entirely driven by a trained Random Forest Scikit-Learn classifier!
     """
     try:
-        with Image.open(image_path) as img:
-            # 1. Standardize the image size so the math NEVER fluctuates
-            img = img.resize((400, 400))
-            gray_img = img.convert('L')
-            
-            # 2. Determine the background lighting (0 = Black, 255 = White)
-            brightness = ImageStat.Stat(gray_img).mean[0]
-            
-            # 3. Get the Edge Score
-            edges = gray_img.filter(ImageFilter.FIND_EDGES)
-            edge_score = ImageStat.Stat(edges).stddev[0]  
-            
-            print(f"Lighting: {brightness:.1f} | Edge Score: {edge_score:.1f}")
+        # 1. Extract Features from the incoming image
+        features = extract_features_for_inference(image_path)
 
-            # 4. THE DUAL-ENVIRONMENT LOGIC (The guaranteed fix)
-            if brightness < 100:
-                # DARK MODE (Matches your Cracked Vial)
-                dynamic_threshold = 5.0
-            else:
-                # LIGHT MODE (Matches your Clean Vial)
-                dynamic_threshold = 40.0
+        # 1b. Hard gate obvious non-product captures before invoking ML
+        invalid, reason = is_invalid_capture(features)
+        if invalid:
+            return {
+                'label': 'Invalid / Unwanted Image',
+                'confidence': 0.99,
+                'is_defective': True,  # treat as a blocking failure, not a pass
+                'raw_response': json.dumps({
+                    "ai_backend": "heuristic_guard",
+                    "features": features,
+                    "reason": reason
+                })
+            }
 
-            # 5. The Decision
-            if edge_score > dynamic_threshold:  
-                confidence = min(0.85 + (edge_score / 100), 0.99) 
-                return {
-                    'is_defective': True,
-                    'confidence': round(confidence, 2),
-                    'label': 'Physical Crack Detected',
-                    'raw_response': json.dumps({"mode": "dark" if brightness < 100 else "light", "score": round(edge_score, 1)})
-                }
-            else:
-                return {
-                    'is_defective': False,
-                    'confidence': 0.98,
-                    'label': 'Clean Surface Verified',
-                    'raw_response': json.dumps({"mode": "dark" if brightness < 100 else "light", "score": round(edge_score, 1)})
-                }
+        # 2. Load the Model
+        clf = load_local_ml_model()
+        
+        # 3. Predict!
+        prediction = clf.predict([features])[0]
+        probabilities = clf.predict_proba([features])[0]
+        confidence = max(probabilities)
+        
+        # 4. Format the standard system response based on the ML prediction
+        if prediction == "Background":
+             return {
+                'label': 'Invalid / Unwanted Image',
+                'confidence': round(confidence, 2),
+                'is_defective': True,  # treat background/unwanted frames as blocking errors
+                'raw_response': json.dumps({
+                    "ai_backend": "sklearn_random_forest", 
+                    "features": features,
+                    "reason": "background_class_predicted"
+                })
+             }
+             
+        elif prediction == "Product_Defective":
+             result = {
+                'label': 'Physical Crack Detected',
+                'confidence': round(confidence, 2),
+                'is_defective': True,
+                'raw_response': json.dumps({
+                    "ai_backend": "sklearn_random_forest", 
+                    "features": features
+                })
+             }
+             
+        else:
+             # Default assumption for Product_Clean
+             result = {
+                'label': 'Clean Surface Verified',
+                'confidence': round(confidence, 2),
+                'is_defective': False,
+                'raw_response': json.dumps({
+                    "ai_backend": "sklearn_random_forest", 
+                    "features": features
+                })
+             }
+             
+        # --- Inject crack coordinates if defective ---
+        if result.get('is_defective'):
+            bbox = get_smart_bounding_box(image_path)
+            raw_dict = json.loads(result['raw_response'])
+            raw_dict['bbox'] = bbox
+            result['raw_response'] = json.dumps(raw_dict)
 
+        return result
+        
     except Exception as e:
-        print(f"Pixel Scan Error: {e}")
+        print(f"Machine Learning Pipeline Error: {e}")
         return {
-            'is_defective': True,
+            'is_defective': True, # Fail safe
             'confidence': 0.99,
             'label': 'System Error',
-            'raw_response': '{}'
+            'raw_response': json.dumps({"error": str(e)})
         }

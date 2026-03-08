@@ -11,21 +11,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260308">
 </head>
 
 <body>
     <div id="wrapper">
 
         <div id="sidebar-wrapper">
-            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <a href="{% if user.role == 'inspector' %}{% url 'inspector_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}" class="sidebar-brand">
                 <i class="fas fa-microscope"></i> DetectAI
             </a>
 
             <nav class="sidebar-nav">
                 <div class="nav-section-label">Main System</div>
                 
-                <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <a href="{% if user.role == 'inspector' %}{% url 'inspector_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'inspector_dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-pie"></i> Dashboard
                 </a>
 
