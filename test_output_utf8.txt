@@ -1,5 +1,0 @@
-﻿--- Testing Hand Image ---
-Skin-tone pixels: 1.95%
-Using Local Pixel Scan fallback...
-Lighting: 177.4 | Edge Score: 44.8
-Result: {'is_defective': True, 'confidence': 0.99, 'label': 'Physical Crack Detected', 'raw_response': '{"mode": "light", "score": 44.8, "bbox": {"left": 25.750000000000004, "top": 32.0, "width": 51.25, "height": 45.0}}'}

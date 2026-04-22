@@ -5,6 +5,7 @@ from django.db.models.functions import TruncMonth
 from inspections.models import Inspection, Defect, Alert
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+from inspections.services import ai_service
 
 def home(request):
     if request.user.is_authenticated:
@@ -20,6 +21,10 @@ def role_redirect(request):
 
 @login_required
 def dashboard(request):
+    # YOLO toggle from session (default False)
+    use_yolo = request.session.get('use_yolo', False)
+    ai_service.set_yolo_active(use_yolo)
+
     # Base Query
     base_qs = Inspection.objects.all()
     if request.user.role == 'inspector':
@@ -123,6 +128,7 @@ def dashboard(request):
         'top_batch': top_batch,
         'trend_direction': trend_direction,
         'trend_percent': abs(round(trend_percent, 1)),
+        'use_yolo': use_yolo,
     }
 
     return render(request, 'dashboard/dashboard.html', context)
@@ -146,8 +152,19 @@ def inspector_dashboard(request):
         'defect_rate': round(defect_rate, 2),
         'pending_alerts': pending_alerts,
         'recent_inspections': recent_inspections,
+        'use_yolo': request.session.get('use_yolo', False),
     }
     return render(request, 'dashboard/inspector_dashboard.html', context)
+
+@login_required
+def toggle_yolo(request):
+    if request.user.role not in ['admin', 'manager']:
+        return redirect('dashboard')
+    current = request.session.get('use_yolo', False)
+    new_state = not current
+    request.session['use_yolo'] = new_state
+    ai_service.set_yolo_active(new_state)
+    return redirect('dashboard')
 
 @login_required
 def about(request):

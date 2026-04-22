@@ -121,3 +121,8 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Admin account to receive error alerts
 ADMINS = [('admin', os.getenv('ADMIN_EMAIL'))]
 EMAIL_HOST_PASSWORD = 'icjy gieo hsyx vzom'
+
+# --- FILE UPLOAD LIMITS ---
+DATA_UPLOAD_MAX_NUMBER_FILES = None       # No limit on file count for bulk inspections
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600   # 100 MB - supports 200+ images per batch
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600   # 100 MB

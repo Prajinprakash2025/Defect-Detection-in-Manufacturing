@@ -6,6 +6,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('inspector/dashboard/', views.inspector_dashboard, name='inspector_dashboard'),
     path('redirect/', views.role_redirect, name='role_redirect'),
+    path('yolo-toggle/', views.toggle_yolo, name='toggle_yolo'),
     path('about/', views.about, name='about'),
     
 ]

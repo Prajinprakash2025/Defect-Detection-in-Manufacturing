@@ -19,10 +19,18 @@
             <i class="fas fa-file-pdf"></i> Export Report
         </a>
         {% endif %}
-        {% if user.role == 'admin' or user.role == 'manager' %}
+        {% if user.role == 'admin' %}
         <a href="{% url 'signup' %}" class="btn btn-outline-primary shadow-sm d-flex align-items-center gap-2" style="border-radius: 10px;">
             <i class="fas fa-user-plus"></i> Create User
         </a>
+        {% endif %}
+        {% if user.role == 'admin' or user.role == 'manager' %}
+        <form method="post" action="{% url 'toggle_yolo' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn {% if use_yolo %}btn-success{% else %}btn-outline-secondary{% endif %} shadow-sm d-flex align-items-center gap-2" style="border-radius: 10px;">
+                <i class="fas fa-robot"></i> YOLO {{ use_yolo|yesno:"ON,OFF" }}
+            </button>
+        </form>
         {% endif %}
         </div>
     </div>

@@ -13,7 +13,7 @@ class SignUpView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def test_func(self):
         user = self.request.user
-        return user.is_authenticated and (user.role in ['admin', 'manager'] or user.is_superuser)
+        return user.is_authenticated and (user.role == 'admin' or user.is_superuser)
 
     def handle_no_permission(self):
         messages.error(self.request, "Only admins and managers can create new accounts.")
@@ -36,8 +36,8 @@ from .models import CustomUser
 from django.contrib.auth.hashers import make_password
 
 def is_admin(user):
-    # Allow admins and managers to manage users
-    return user.is_authenticated and (user.role in ['admin', 'manager'] or user.is_superuser)
+    # Only admins (or superuser) can manage/create users
+    return user.is_authenticated and (user.role == 'admin' or user.is_superuser)
 
 @user_passes_test(is_admin)
 def user_list(request):
@@ -102,4 +102,22 @@ def toggle_user_active(request, pk):
         user_to_edit.save()
         state = "activated" if user_to_edit.is_active else "deactivated"
         messages.success(request, f"{user_to_edit.username} {state}.")
+    return redirect('user_list')
+
+@user_passes_test(is_admin)
+def update_user_info(request, pk):
+    user_to_edit = get_object_or_404(CustomUser, pk=pk)
+    if request.method == 'POST':
+        new_username = request.POST.get('username', '').strip()
+        new_email = request.POST.get('email', '').strip()
+        if new_username:
+            # Ensure username uniqueness
+            exists = CustomUser.objects.exclude(pk=pk).filter(username=new_username).exists()
+            if exists:
+                messages.error(request, "Username already taken.")
+                return redirect('user_list')
+            user_to_edit.username = new_username
+        user_to_edit.email = new_email
+        user_to_edit.save()
+        messages.success(request, f"Updated account for {user_to_edit.username}.")
     return redirect('user_list')

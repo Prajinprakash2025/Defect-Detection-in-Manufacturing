@@ -12,9 +12,16 @@
             </h2>
             <p class="text-muted mb-0" style="font-size: 0.85rem;">Manage roles and permissions for all registered system users.</p>
         </div>
-        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill d-flex align-items-center gap-2" style="font-weight: 700; font-size: 0.75rem;">
-            <i class="fas fa-shield-halved"></i> ADMIN PANEL
-        </span>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill d-flex align-items-center gap-2" style="font-weight: 700; font-size: 0.75rem;">
+                <i class="fas fa-shield-halved"></i> ADMIN PANEL
+            </span>
+            {% if request.user.role == 'admin' or request.user.is_superuser %}
+            <a href="{% url 'signup' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm" style="border-radius: 10px;">
+                <i class="fas fa-user-plus"></i> Add User
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
@@ -103,4 +110,6 @@
         </div>
     </div>
 </div>
+
+{# Removed floating Add User to leave only header button #}
 {% endblock %}

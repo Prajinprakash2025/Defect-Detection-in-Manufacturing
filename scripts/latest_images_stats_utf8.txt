@@ -1,5 +1,0 @@
-live_scan_1772350458749.jpg         | L: 115.1 | E:  39.8 | Skin: 28.0%
-live_scan_1772350427684.jpg         | L: 103.2 | E:  40.9 | Skin: 31.7%
-defect_image_kYTEWW9.jpg            | L: 188.1 | E:  26.3 | Skin: 46.4%
-live_scan_1772347748187.jpg         | L: 108.6 | E:  41.7 | Skin: 24.9%
-defect_image.jpg                    | L: 188.1 | E:  26.3 | Skin: 46.4%
