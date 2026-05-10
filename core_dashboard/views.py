@@ -15,7 +15,7 @@ def home(request):
 def role_redirect(request):
     if not request.user.is_authenticated:
         return redirect('login')
-    if request.user.role == 'inspector':
+    if request.user.role == 'inspector' and not request.user.is_superuser:
         return redirect('inspector_dashboard')
     return redirect('dashboard')
 
@@ -27,7 +27,7 @@ def dashboard(request):
 
     # Base Query
     base_qs = Inspection.objects.all()
-    if request.user.role == 'inspector':
+    if request.user.role == 'inspector' and not request.user.is_superuser:
         base_qs = base_qs.filter(uploaded_by=request.user)
 
     # Summary Cards
@@ -38,7 +38,7 @@ def dashboard(request):
     
     # NEW: Total Users (Admin Only) - "Reflects 3 different users"
     total_users = 0
-    if request.user.role == 'admin':
+    if request.user.is_admin:
         from django.contrib.auth import get_user_model
         User = get_user_model()
         total_users = User.objects.count()
@@ -135,7 +135,7 @@ def dashboard(request):
 
 @login_required
 def inspector_dashboard(request):
-    if request.user.role != 'inspector':
+    if request.user.role != 'inspector' or request.user.is_superuser:
         return redirect('dashboard')
 
     base_qs = Inspection.objects.filter(uploaded_by=request.user)
@@ -158,7 +158,7 @@ def inspector_dashboard(request):
 
 @login_required
 def toggle_yolo(request):
-    if request.user.role not in ['admin', 'manager']:
+    if not (request.user.is_admin or request.user.is_manager):
         return redirect('dashboard')
     current = request.session.get('use_yolo', False)
     new_state = not current

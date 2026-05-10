@@ -13,7 +13,7 @@ class SignUpView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def test_func(self):
         user = self.request.user
-        return user.is_authenticated and (user.role == 'admin' or user.is_superuser)
+        return user.is_authenticated and user.is_admin
 
     def handle_no_permission(self):
         messages.error(self.request, "Only admins and managers can create new accounts.")
@@ -37,7 +37,7 @@ from django.contrib.auth.hashers import make_password
 
 def is_admin(user):
     # Only admins (or superuser) can manage/create users
-    return user.is_authenticated and (user.role == 'admin' or user.is_superuser)
+    return user.is_authenticated and user.is_admin
 
 @user_passes_test(is_admin)
 def user_list(request):

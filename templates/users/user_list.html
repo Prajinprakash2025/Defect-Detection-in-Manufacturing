@@ -12,7 +12,7 @@
             </h2>
             <p class="text-muted mb-0" style="font-size: 0.95rem;">Manage system access, assign roles, and control permissions.</p>
         </div>
-        {% if request.user.role == 'admin' or request.user.is_superuser %}
+        {% if request.user.is_admin %}
         <div class="d-flex align-items-center gap-2 ms-auto">
             <span class="text-muted small">Pending approvals: {{ pending_count }}</span>
             <button class="btn btn-primary d-flex align-items-center gap-2 shadow-sm" style="border-radius: 10px;" data-bs-toggle="modal" data-bs-target="#createUserModal">
@@ -170,7 +170,7 @@
     {% endfor %}
 </div>
 
-{% if request.user.role == 'admin' or request.user.is_superuser %}
+{% if request.user.is_admin %}
 <button class="btn btn-primary position-fixed d-flex align-items-center gap-2 shadow" style="right: 24px; bottom: 24px; border-radius: 14px; z-index: 1080;" data-bs-toggle="modal" data-bs-target="#createUserModal">
     <i class="fas fa-user-plus"></i> Add User
 </button>

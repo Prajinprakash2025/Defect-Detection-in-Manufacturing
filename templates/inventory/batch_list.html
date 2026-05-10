@@ -12,7 +12,7 @@
             <p class="text-muted mb-0" style="font-size: 0.95rem;">Active manufacturing runs pending quality inspection.</p>
         </div>
         
-        {% if request.user.role == 'admin' %}
+        {% if request.user.is_admin %}
         <a href="{% url 'create_batch' %}" class="btn btn-primary shadow-sm d-flex align-items-center gap-2" style="border-radius: 10px;">
             <i class="fas fa-plus"></i> Create Batch
         </a>
@@ -64,7 +64,7 @@
                     {% endif %}
                 </div>
 
-                {% if request.user.role == 'admin' %}
+                {% if request.user.is_admin %}
                 <div class="card-footer bg-transparent border-top border-secondary border-opacity-10 p-3">
                     <div class="d-flex justify-content-end gap-2">
                         <a href="{% url 'edit_batch' batch.pk %}" class="btn btn-sm btn-light border text-muted px-3 d-flex align-items-center gap-2" style="border-radius: 8px; font-weight: 600;">
@@ -91,7 +91,7 @@
                     </div>
                     <h5 class="fw-bold text-dark">No Active Batches</h5>
                     <p class="text-muted mb-4">There are currently no manufacturing runs pending inspection.</p>
-                    {% if request.user.role == 'admin' %}
+                    {% if request.user.is_admin %}
                     <a href="{% url 'create_batch' %}" class="btn btn-primary px-4" style="border-radius: 10px;">
                         <i class="fas fa-plus me-2"></i>Create the First Batch
                     </a>

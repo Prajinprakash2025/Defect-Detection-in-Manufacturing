@@ -18,18 +18,18 @@
     <div id="wrapper">
 
         <div id="sidebar-wrapper">
-                <a href="{% if user.role == 'inspector' %}{% url 'inspector_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}" class="sidebar-brand">
+                <a href="{% if user.role == 'inspector' and not user.is_superuser %}{% url 'inspector_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}" class="sidebar-brand">
                 <i class="fas fa-microscope"></i> DetectAI
             </a>
 
             <nav class="sidebar-nav">
                 <div class="nav-section-label">Main System</div>
                 
-                <a href="{% if user.role == 'inspector' %}{% url 'inspector_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'inspector_dashboard' %}active{% endif %}">
+                <a href="{% if user.role == 'inspector' and not user.is_superuser %}{% url 'inspector_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'inspector_dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-pie"></i> Dashboard
                 </a>
 
-                {% if user.role == 'admin' or user.role == 'inspector' %}
+                {% if user.is_admin or user.role == 'inspector' %}
                 <a href="{% url 'upload_inspection' %}" class="sidebar-link {% if request.resolver_match.url_name == 'upload_inspection' %}active{% endif %}">
                     <i class="fas fa-camera-retro"></i> New Inspection
                 </a>
@@ -49,7 +49,7 @@
                     <i class="fas fa-cube"></i> Product Lines
                 </a>
 
-                {% if user.role == 'admin' or user.role == 'manager' %}
+                {% if user.is_admin or user.is_manager %}
                 <div class="nav-section-label">Administration</div>
 
                 <a href="{% url 'report_preview' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report_preview' %}active{% endif %}">
@@ -57,7 +57,7 @@
                 </a>
                 {% endif %}
 
-                {% if user.role == 'admin' %}
+                {% if user.is_admin %}
                 <a href="{% url 'user_management' %}" class="sidebar-link {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
                     <i class="fas fa-users-gear"></i> User Management
                 </a>
@@ -71,7 +71,7 @@
                     </div>
                     <div class="sidebar-user-info">
                         <div class="sidebar-user-name text-white fw-bold" style="font-size: 0.85rem;">{{ user.username|default:"Guest" }}</div>
-                        <div class="sidebar-user-role text-muted" style="font-size: 0.75rem; text-transform: capitalize;">{{ user.role|default:"User" }}</div>
+                        <div class="sidebar-user-role text-muted" style="font-size: 0.75rem; text-transform: capitalize;">{% if user.is_superuser %}Super Admin{% else %}{{ user.role|default:"User" }}{% endif %}</div>
                     </div>
                 </div>
 

@@ -11,6 +11,10 @@ class CustomUser(AbstractUser):
     
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
+
+    @property
+    def is_admin(self):
+        return self.role == 'admin' or self.is_superuser
     
     @property
     def is_inspector(self):

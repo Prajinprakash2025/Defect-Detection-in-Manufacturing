@@ -12,7 +12,7 @@
             <p class="text-muted mb-0" style="font-size: 0.95rem;">Master list of manufactured items configured for AI inspection.</p>
         </div>
         
-        {% if request.user.role == 'admin' %}
+        {% if request.user.is_admin %}
         <a href="{% url 'create_product' %}" class="btn btn-primary shadow-sm d-flex align-items-center gap-2" style="border-radius: 10px;">
             <i class="fas fa-plus"></i> Add Product
         </a>
@@ -49,7 +49,7 @@
 
                 </div>
                 
-                {% if request.user.role == 'admin' %}
+                {% if request.user.is_admin %}
                 <div class="card-footer bg-transparent border-top border-secondary border-opacity-10 p-3">
                     <div class="d-flex justify-content-end">
                         <a href="{% url 'delete_product' product.pk %}" class="btn btn-sm btn-danger bg-opacity-10 text-danger border-0 px-3 d-flex align-items-center gap-2" style="border-radius: 8px; font-weight: 600; background-color: rgba(220, 38, 38, 0.1);">
@@ -71,7 +71,7 @@
                     </div>
                     <h5 class="fw-bold text-dark">Empty Product Catalog</h5>
                     <p class="text-muted mb-4">No product lines have been configured for the system yet.</p>
-                    {% if request.user.role == 'admin' %}
+                    {% if request.user.is_admin %}
                     <a href="{% url 'create_product' %}" class="btn btn-primary px-4" style="border-radius: 10px;">
                         <i class="fas fa-plus me-2"></i>Add the First Product
                     </a>

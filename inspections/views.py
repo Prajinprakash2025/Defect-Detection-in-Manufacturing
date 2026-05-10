@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Inspection, Defect, Alert
-from core_inventory.models import Batch
+from core_inventory.models import Batch, Product
 from .forms import InspectionForm
 from .services.ai_service import detect_defect
 from PIL import Image, ImageEnhance
@@ -22,7 +22,7 @@ CONFIDENCE_THRESHOLD = 0.50
 @login_required
 def upload_inspection(request):
     # Manager cannot upload inspections
-    if request.user.role == 'manager':
+    if request.user.role == 'manager' and not request.user.is_superuser:
         messages.error(request, "Managers are not authorized to upload inspections.")
         return redirect('dashboard')
 
@@ -35,7 +35,7 @@ def upload_inspection(request):
             messages.error(request, "Please select a batch and upload at least one image.")
             return redirect('upload_inspection')
 
-        batch = get_object_or_404(Batch, id=batch_id)
+        batch = get_object_or_404(Batch, id=batch_id, status='Active')
         
         # Track our bulk results
         defects_found = 0
@@ -135,14 +135,17 @@ def upload_inspection(request):
         return redirect('inspection_list')
 
     else:
-        # Pass batches to the template for the dropdown menu
-        batches = Batch.objects.all()
-        return render(request, 'inspections/upload.html', {'batches': batches})
+        # Only active production batches can receive new inspections.
+        batches = Batch.objects.select_related('product').filter(status='Active').order_by('-manufacture_date')
+        return render(request, 'inspections/upload.html', {
+            'batches': batches,
+            'products_exist': Product.objects.exists(),
+        })
 
 @login_required
 def verify_result(request, pk):
     # Admin Only
-    if request.user.role != 'admin':
+    if not request.user.is_admin:
         messages.error(request, "Permission Denied.")
         return redirect('inspection_detail', pk=pk)
 
@@ -247,7 +250,7 @@ def inspection_list(request):
     User = get_user_model()
     
     # Role-Based Filtering: Inspectors see only their own inspections
-    if request.user.role == 'inspector':
+    if request.user.role == 'inspector' and not request.user.is_superuser:
         inspections = inspections.filter(uploaded_by=request.user)
     
     batches = Batch.objects.all() # For filter dropdown
@@ -262,7 +265,7 @@ def inspection_list(request):
     action = request.POST.get('action') if request.method == 'POST' else None
 
     # Assignment action (admin/manager)
-    if action == 'assign' and request.user.role in ['admin', 'manager']:
+    if action == 'assign' and (request.user.is_admin or request.user.is_manager):
         ins_id = request.POST.get('inspection_id')
         user_id = request.POST.get('assignee_id')
         if ins_id and user_id:
@@ -308,7 +311,7 @@ def delete_inspection(request, pk):
     inspection = get_object_or_404(Inspection, pk=pk)
     
     # Strict Role Check: Only Admin can delete
-    if request.user.role != 'admin':
+    if not request.user.is_admin:
         messages.error(request, "Permission Denied: Only Admins can delete inspections.")
         return redirect('inspection_list')
     
@@ -322,7 +325,7 @@ def delete_inspection(request, pk):
 @login_required
 def bulk_delete_inspections(request):
     # Strict Role Check: Only Admin can delete
-    if request.user.role != 'admin':
+    if not request.user.is_admin:
         messages.error(request, "Permission Denied: Only Admins can delete inspections.")
         return redirect('inspection_list')
         
@@ -367,7 +370,7 @@ def export_report(request):
 @login_required
 def user_management(request):
     # Admin Only
-    if request.user.role != 'admin':
+    if not request.user.is_admin:
         messages.error(request, "Permission Denied: Only Admins can manage users.")
         return redirect('dashboard')
 
@@ -379,7 +382,7 @@ def user_management(request):
 @login_required
 def change_user_role(request, pk):
     # Admin Only
-    if request.user.role != 'admin':
+    if not request.user.is_admin:
         messages.error(request, "Permission Denied.")
         return redirect('dashboard')
     

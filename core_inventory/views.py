@@ -6,7 +6,7 @@ from .forms import ProductForm, BatchForm
 
 # --- SECURITY CHECK ---
 def is_admin(user):
-    return user.is_authenticated and (user.role == 'admin' or user.is_superuser)
+    return user.is_authenticated and user.is_admin
 
 # ==========================================
 # PRODUCT VIEWS (The "Catalog")

@@ -21,9 +21,16 @@
         </h2>
         <p class="text-muted mb-0" style="font-size: 0.95rem;">Capture or upload product images for real-time AI defect analysis.</p>
     </div>
-    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill d-flex align-items-center gap-2" style="font-weight: 700; font-size: 0.75rem;">
-        <i class="fas fa-circle-dot" style="font-size: 0.55rem;"></i> LIVE SYSTEM
-    </span>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        {% if request.user.is_admin %}
+        <a href="{% url 'create_batch' %}" class="btn btn-primary shadow-sm d-flex align-items-center gap-2" style="border-radius: 10px;">
+            <i class="fas fa-plus"></i> Create Batch
+        </a>
+        {% endif %}
+        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill d-flex align-items-center gap-2" style="font-weight: 700; font-size: 0.75rem;">
+            <i class="fas fa-circle-dot" style="font-size: 0.55rem;"></i> LIVE SYSTEM
+        </span>
+    </div>
 </div>
 
 <div class="row g-4 align-items-start">
@@ -99,11 +106,29 @@
                     {% csrf_token %}
 
                     {% if not batches %}
-                    <div class="alert alert-warning border-0 shadow-sm rounded-3 d-flex align-items-center gap-3 p-4">
-                        <i class="fas fa-triangle-exclamation fs-2 text-warning"></i>
-                        <div>
+                    <div class="alert alert-warning border-0 shadow-sm rounded-3 d-flex align-items-start gap-3 p-4">
+                        <i class="fas fa-triangle-exclamation fs-2 text-warning mt-1"></i>
+                        <div class="w-100">
                             <h6 class="fw-bold mb-1 text-dark">No active batches found.</h6>
-                            <p class="mb-0 small">Please <a href="{% url 'create_batch' %}" class="fw-bold text-warning text-decoration-none">create a Manufacturing Batch</a> before running an inspection.</p>
+                            {% if request.user.is_admin %}
+                            <p class="mb-3 small">Create an active Manufacturing Batch before running an inspection. If there are no products yet, add the product line first.</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% if products_exist %}
+                                <a href="{% url 'create_batch' %}" class="btn btn-warning fw-bold d-flex align-items-center gap-2" style="border-radius: 8px;">
+                                    <i class="fas fa-plus"></i> Create Batch
+                                </a>
+                                {% else %}
+                                <a href="{% url 'create_product' %}" class="btn btn-warning fw-bold d-flex align-items-center gap-2" style="border-radius: 8px;">
+                                    <i class="fas fa-cube"></i> Add Product First
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'batch_list' %}" class="btn btn-light border fw-semibold d-flex align-items-center gap-2" style="border-radius: 8px;">
+                                    <i class="fas fa-boxes-stacked"></i> Open Batch Tracking
+                                </a>
+                            </div>
+                            {% else %}
+                            <p class="mb-0 small">Ask an admin to create an active Manufacturing Batch before running an inspection.</p>
+                            {% endif %}
                         </div>
                     </div>
                     {% else %}

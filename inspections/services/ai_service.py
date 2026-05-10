@@ -20,6 +20,13 @@ _CACHED_MODEL_DATA = None
 _CACHED_FEATURE_EXTRACTOR = None
 
 
+def set_yolo_active(active):
+    """Update the optional YOLO toggle used by dashboard controls."""
+    global USE_YOLO
+    USE_YOLO = bool(active)
+    return USE_YOLO
+
+
 def load_feature_extractor():
     """Load the MobileNetV2 feature extractor (Keras SavedModel)."""
     global _CACHED_FEATURE_EXTRACTOR
