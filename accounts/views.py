@@ -7,7 +7,7 @@ from .forms import CustomUserCreationForm
 
 class SignUpView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     form_class = CustomUserCreationForm
-    success_url = reverse_lazy('user_list')
+    success_url = reverse_lazy('user_management')
     template_name = 'registration/signup.html'
     login_url = reverse_lazy('login')
 
@@ -41,6 +41,10 @@ def is_admin(user):
 
 @user_passes_test(is_admin)
 def user_list(request):
+    return redirect('user_management')
+
+@user_passes_test(is_admin)
+def legacy_user_list(request):
     if request.method == 'POST' and request.POST.get('action') == 'create':
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()

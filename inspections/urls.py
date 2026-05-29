@@ -4,6 +4,9 @@ from . import views
 urlpatterns = [
     path('user-management/', views.user_management, name='user_management'),
     path('user-management/change-role/<int:pk>/', views.change_user_role, name='change_user_role'),
+    path('user-management/toggle/<int:pk>/', views.toggle_user_active, name='toggle_managed_user_active'),
+    path('user-management/update/<int:pk>/', views.update_user_info, name='update_managed_user_info'),
+    path('user-management/delete/<int:pk>/', views.delete_user, name='delete_managed_user'),
     path('upload/', views.upload_inspection, name='upload_inspection'),
     path('list/', views.inspection_list, name='inspection_list'),
     path('bulk-delete/', views.bulk_delete_inspections, name='bulk_delete_inspections'),

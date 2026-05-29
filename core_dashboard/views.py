@@ -1,10 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import TruncDate
 from inspections.models import Inspection, Defect, Alert
 import json
-from django.core.serializers.json import DjangoJSONEncoder
 from inspections.services import ai_service
 
 def home(request):
@@ -43,30 +42,28 @@ def dashboard(request):
         User = get_user_model()
         total_users = User.objects.count()
 
-    # Monthly Trends
+    # Inspection trend by real scan date. This avoids misleading single-month curves.
     if total_inspections > 0:
-        monthly_trends = base_qs.annotate(month=TruncMonth('timestamp')) \
-            .values('month') \
+        inspection_trends = base_qs.annotate(scan_date=TruncDate('timestamp')) \
+            .values('scan_date') \
             .annotate(total=Count('id'), defective=Count('id', filter=Q(status='Defective'))) \
-            .order_by('month')
+            .order_by('scan_date')
         
-        trend_labels = [entry['month'].strftime('%b %Y') for entry in monthly_trends]
-        trend_data_total = [entry['total'] for entry in monthly_trends]
-        trend_data_defective = [entry['defective'] for entry in monthly_trends]
+        trend_labels = [entry['scan_date'].strftime('%b %d') for entry in inspection_trends]
+        trend_data_total = [entry['total'] for entry in inspection_trends]
+        trend_data_defective = [entry['defective'] for entry in inspection_trends]
     else:
         trend_labels = []
         trend_data_total = []
         trend_data_defective = []
 
     # Defect Type Distribution
-    # Use base_qs for filtering context if needed, but Defect model is separate. 
-    # Link Defect back to Inspection for filtering
-    defect_types = Defect.objects.filter(inspection__in=base_qs).values('defect_type').annotate(total=Count('id'))
+    defect_types = Defect.objects.filter(inspection__in=base_qs).values('defect_type').annotate(total=Count('id')).order_by('-total')
     dtype_labels = [entry['defect_type'] for entry in defect_types] if defect_types else []
     dtype_data = [entry['total'] for entry in defect_types] if defect_types else []
 
     # Severity Distribution
-    severity_dist = Defect.objects.filter(inspection__in=base_qs).values('severity').annotate(total=Count('id'))
+    severity_dist = Defect.objects.filter(inspection__in=base_qs).values('severity').annotate(total=Count('id')).order_by('severity')
     severity_labels = [entry['severity'] for entry in severity_dist] if severity_dist else []
     severity_data = [entry['total'] for entry in severity_dist] if severity_dist else []
 
@@ -74,8 +71,7 @@ def dashboard(request):
     recent_inspections = base_qs.order_by('-timestamp')[:5]
 
     # --- Smart Insights ---
-    # 1. Batch with Highest Defect Percentage
-    # Get stats per batch
+    # 1. Batch with highest defect percentage, including sample size.
     batch_stats = base_qs.values('batch__batch_number') \
         .annotate(total=Count('id'), defective=Count('id', filter=Q(status='Defective')))
     
@@ -90,6 +86,7 @@ def dashboard(request):
                 top_batch = {
                     'batch__batch_number': stat['batch__batch_number'],
                     'defect_count': stat['defective'],
+                    'total_count': stat['total'],
                     'defect_rate': round(rate, 1)
                 }
 
@@ -105,7 +102,12 @@ def dashboard(request):
     if prev_7_days > 0:
         trend_diff = last_7_days - prev_7_days
         trend_percent = (trend_diff / prev_7_days) * 100
-        trend_direction = 'Increased' if trend_diff > 0 else 'Decreased'
+        if trend_diff > 0:
+            trend_direction = 'Increased'
+        elif trend_diff < 0:
+            trend_direction = 'Decreased'
+        else:
+            trend_direction = 'Stable'
     else:
         trend_direction = 'Stable' if last_7_days == 0 else 'Increased'
         trend_percent = 100 if last_7_days > 0 else 0

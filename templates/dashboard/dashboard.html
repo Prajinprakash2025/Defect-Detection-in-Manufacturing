@@ -19,11 +19,6 @@
             <i class="fas fa-file-pdf"></i> Export Report
         </a>
         {% endif %}
-        {% if user.is_admin %}
-        <a href="{% url 'signup' %}" class="btn btn-outline-primary shadow-sm d-flex align-items-center gap-2" style="border-radius: 10px;">
-            <i class="fas fa-user-plus"></i> Create User
-        </a>
-        {% endif %}
         {% if user.is_admin or user.is_manager %}
         <form method="post" action="{% url 'toggle_yolo' %}">
             {% csrf_token %}
@@ -141,7 +136,7 @@
                 <p class="mb-0 text-dark fw-semibold" style="font-size: 0.95rem;">
                     {% if top_batch %}
                     Batch <span class="text-danger fw-bold">#{{ top_batch.batch__batch_number }}</span>
-                    &mdash; {{ top_batch.defect_count }} defects ({{ top_batch.defect_rate }}% rate)
+                    &mdash; {{ top_batch.defect_count }} of {{ top_batch.total_count }} defective ({{ top_batch.defect_rate }}% rate)
                     {% else %}
                     <span class="text-success"><i class="fas fa-check-circle me-1"></i> No defective batches found.</span>
                     {% endif %}
@@ -155,9 +150,9 @@
         <div class="col-md-8">
             <div class="card shadow-sm border-0 rounded-4 h-100 d-flex flex-column">
                 <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 p-4">
-                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-wave-square text-primary me-2"></i> Monthly Inspection Trends</h5>
+                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-wave-square text-primary me-2"></i> Inspection Trend by Date</h5>
                 </div>
-                <div class="card-body p-4 flex-grow-1">
+                <div class="card-body p-4 flex-grow-1 chart-frame chart-frame-lg">
                     <canvas id="trendChart"></canvas>
                 </div>
             </div>
@@ -167,7 +162,7 @@
                 <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 p-4">
                     <h5 class="fw-bold text-dark mb-0"><i class="fas fa-circle-half-stroke text-warning me-2"></i> Defect Severity</h5>
                 </div>
-                <div class="card-body p-4 d-flex justify-content-center align-items-center flex-grow-1">
+                <div class="card-body p-4 d-flex justify-content-center align-items-center flex-grow-1 chart-frame">
                     <canvas id="severityChart"></canvas>
                 </div>
             </div>
@@ -180,7 +175,7 @@
                 <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 p-4">
                     <h5 class="fw-bold text-dark mb-0"><i class="fas fa-chart-bar text-info me-2"></i> Defect Types</h5>
                 </div>
-                <div class="card-body p-4 flex-grow-1">
+                <div class="card-body p-4 flex-grow-1 chart-frame">
                     <canvas id="dtypeChart"></canvas>
                 </div>
             </div>
@@ -212,9 +207,13 @@
                                         <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
                                             <i class="fas fa-circle-xmark me-1"></i>Defective
                                         </span>
-                                        {% else %}
+                                        {% elif inspection.status == 'Non-Defective' %}
                                         <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
                                             <i class="fas fa-circle-check me-1"></i>Pass
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                                            <i class="fas fa-hourglass-half me-1"></i>Pending
                                         </span>
                                         {% endif %}
                                     </td>
@@ -254,37 +253,35 @@
             }
         };
 
-        // 1. Trends Line Chart (Using Premium Indigo/Red colors)
+        // 1. Inspection trends by real scan date
         const trendCtx = document.getElementById('trendChart').getContext('2d');
         new Chart(trendCtx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: {{ trend_labels|safe }},
                 datasets: [
                     {
                         label: 'Total Inspections',
                         data: {{ trend_data_total|safe }},
-                        borderColor: '#4f46e5', // Indigo 600
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.16)',
+                        borderWidth: 1,
+                        borderRadius: 6,
                     },
                     {
                         label: 'Defective',
                         data: {{ trend_data_defective|safe }},
-                        borderColor: '#ef4444', // Red 500
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.72)',
+                        borderWidth: 1,
+                        borderRadius: 6,
                     }
                 ]
             },
             options: {
                 ...commonOptions,
                 scales: { 
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                    y: { beginAtZero: true, ticks: { precision: 0 } },
                     x: { grid: { display: false } }
                 }
             }
@@ -327,7 +324,7 @@
             options: {
                 ...commonOptions,
                 scales: { 
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                    y: { beginAtZero: true, ticks: { precision: 0 } },
                     x: { grid: { display: false } }
                 }
             }

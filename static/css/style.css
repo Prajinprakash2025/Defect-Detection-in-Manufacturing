@@ -263,6 +263,18 @@ a { text-decoration: none; }
     background-color: rgba(100, 116, 139, 0.05) !important;
 }
 
+.chart-frame {
+    min-height: 320px;
+    position: relative;
+}
+.chart-frame-lg {
+    min-height: 360px;
+}
+.chart-frame canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
 .form-control, .form-select {
     background-color: var(--bg-body);
     border: 1px solid var(--border-color);

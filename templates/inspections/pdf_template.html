@@ -111,8 +111,10 @@
                 <td>
                     {% if item.status == 'Defective' %}
                         <span class="danger" style="font-weight: bold;">DEFECTIVE</span>
-                    {% else %}
+                    {% elif item.status == 'Non-Defective' %}
                         <span class="success">PASS</span>
+                    {% else %}
+                        <span class="muted">PENDING</span>
                     {% endif %}
                 </td>
                 <td>{{ item.confidence_score|floatformat:2 }}</td>

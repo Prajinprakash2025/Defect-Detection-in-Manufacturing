@@ -5,7 +5,7 @@ from .models import Inspection, Defect, Alert
 from core_inventory.models import Batch, Product
 from .forms import InspectionForm
 from .services.ai_service import detect_defect
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageEnhance, ImageStat
 import os
 from django.template.loader import get_template
 from xhtml2pdf import pisa
@@ -13,11 +13,24 @@ from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 
 # --- CONFIGURATION ---
 # UPDATED: Lowered to 0.50 to accommodate the newly trained Local Random Forest Machine Learning Model
 CONFIDENCE_THRESHOLD = 0.50 
 # ---------------------
+
+def is_unusable_capture(image_path):
+    try:
+        with Image.open(image_path) as img:
+            gray = img.convert('L').resize((160, 120))
+            stats = ImageStat.Stat(gray)
+            mean_brightness = stats.mean[0]
+            contrast = stats.stddev[0]
+            return mean_brightness < 20 or contrast < 2
+    except Exception as e:
+        print(f"Capture quality check failed: {e}")
+        return True
 
 @login_required
 def upload_inspection(request):
@@ -30,6 +43,7 @@ def upload_inspection(request):
         # Get the batch ID and the LIST of uploaded images
         batch_id = request.POST.get('batch')
         images = request.FILES.getlist('images') # Notice we use getlist() for bulk uploads!
+        capture_source = request.POST.get('capture_source', 'upload')
 
         if not batch_id or not images:
             messages.error(request, "Please select a batch and upload at least one image.")
@@ -40,6 +54,8 @@ def upload_inspection(request):
         # Track our bulk results
         defects_found = 0
         passed_found = 0
+        invalid_found = 0
+        created_inspections = []
 
         # --- THE BULK UPLOAD LOOP ---
         for img_file in images:
@@ -50,8 +66,13 @@ def upload_inspection(request):
                 image=img_file
             )
 
-            # 2. Image Preprocessing (Pillow)
             image_path = inspection.image.path
+            if is_unusable_capture(image_path):
+                invalid_found += 1
+                inspection.delete()
+                continue
+
+            # 2. Image Preprocessing (Pillow)
             try:
                 with Image.open(image_path) as img:
                     img = img.resize((640, 640))
@@ -83,6 +104,7 @@ def upload_inspection(request):
                 passed_found += 1
 
             inspection.save()
+            created_inspections.append(inspection)
 
             # 5. Create Defect & Alert Records if defective
             if inspection.status == 'Defective':
@@ -108,6 +130,12 @@ def upload_inspection(request):
         # --- END OF LOOP ---
 
         # Final Summary Notification & EMAIL TRIGGER
+        if invalid_found:
+            messages.warning(request, f"{invalid_found} image(s) were skipped because the captured frame was too dark or unusable.")
+
+        if not created_inspections:
+            return redirect('upload_inspection')
+
         if defects_found > 0:
             messages.warning(request, f"Bulk Scan Complete: {defects_found} defects found! {passed_found} passed.")
             
@@ -131,6 +159,9 @@ def upload_inspection(request):
             
         else:
             messages.success(request, f"Bulk Scan Complete: All {passed_found} items passed inspection.")
+
+        if capture_source == 'live_camera' and len(created_inspections) == 1:
+            return redirect('inspection_detail', pk=created_inspections[0].pk)
 
         return redirect('inspection_list')
 
@@ -356,7 +387,7 @@ def export_report(request):
     response['Content-Disposition'] = 'attachment; filename="inspection_report.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Batch', 'Dimensions', 'Prediction', 'Confidence', 'Status', 'Date', 'Inspector'])
+    writer.writerow(['ID', 'Batch', 'Prediction', 'Confidence', 'Status', 'Date', 'Inspector'])
 
     inspections = Inspection.objects.all().values_list(
         'id', 'batch__batch_number', 'prediction_label', 'confidence_score', 'status', 'timestamp', 'uploaded_by__username'
@@ -374,10 +405,40 @@ def user_management(request):
         messages.error(request, "Permission Denied: Only Admins can manage users.")
         return redirect('dashboard')
 
-    from django.contrib.auth import get_user_model
     User = get_user_model()
+    role_choices = dict(User.ROLE_CHOICES)
+
+    if request.method == 'POST' and request.POST.get('action') == 'create':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        role = request.POST.get('role', 'inspector')
+        active = request.POST.get('active') == 'on'
+
+        if not username or not password:
+            messages.error(request, "Username and password are required.")
+        elif role not in role_choices:
+            messages.error(request, "Invalid role selected.")
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+        else:
+            new_user = User.objects.create(
+                username=username,
+                email=email,
+                role=role,
+                is_active=active,
+                password=make_password(password),
+            )
+            inactive_label = " (inactive)" if not active else ""
+            messages.success(request, f"User {new_user.username} created as {new_user.get_role_display()}{inactive_label}.")
+        return redirect('user_management')
+
     users = User.objects.all().order_by('-date_joined')
-    return render(request, 'inspections/user_management.html', {'users': users})
+    pending_count = users.filter(is_active=False).count()
+    return render(request, 'inspections/user_management.html', {
+        'users': users,
+        'pending_count': pending_count,
+    })
 
 @login_required
 def change_user_role(request, pk):
@@ -389,6 +450,10 @@ def change_user_role(request, pk):
     from django.contrib.auth import get_user_model
     User = get_user_model()
     user_to_edit = get_object_or_404(User, pk=pk)
+
+    if user_to_edit.is_admin:
+        messages.error(request, "Admin users are protected and cannot be changed here.")
+        return redirect('user_management')
     
     if request.method == 'POST':
         new_role = request.POST.get('role')
@@ -400,6 +465,93 @@ def change_user_role(request, pk):
         else:
             messages.error(request, "Invalid role selected.")
             
+    return redirect('user_management')
+
+@login_required
+def toggle_user_active(request, pk):
+    if not request.user.is_admin:
+        messages.error(request, "Permission Denied.")
+        return redirect('dashboard')
+
+    User = get_user_model()
+    user_to_edit = get_object_or_404(User, pk=pk)
+
+    if user_to_edit.is_admin:
+        messages.error(request, "Admin users are protected and cannot be blocked.")
+        return redirect('user_management')
+
+    if request.method == 'POST':
+        if user_to_edit == request.user:
+            messages.error(request, "You cannot block your own account.")
+        else:
+            user_to_edit.is_active = not user_to_edit.is_active
+            user_to_edit.save()
+            state = "activated" if user_to_edit.is_active else "blocked"
+            messages.success(request, f"{user_to_edit.username} {state}.")
+
+    return redirect('user_management')
+
+@login_required
+def update_user_info(request, pk):
+    if not request.user.is_admin:
+        messages.error(request, "Permission Denied.")
+        return redirect('dashboard')
+
+    User = get_user_model()
+    user_to_edit = get_object_or_404(User, pk=pk)
+
+    if user_to_edit.is_admin:
+        messages.error(request, "Admin users are protected and cannot be edited here.")
+        return redirect('user_management')
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+
+        if not username:
+            messages.error(request, "Username is required.")
+            return redirect('user_management')
+
+        if User.objects.exclude(pk=pk).filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+            return redirect('user_management')
+
+        user_to_edit.username = username
+        user_to_edit.email = email
+        if password or confirm_password:
+            if password != confirm_password:
+                messages.error(request, "Password fields do not match.")
+                return redirect('user_management')
+            user_to_edit.password = make_password(password)
+        user_to_edit.save()
+        messages.success(request, f"Updated account for {user_to_edit.username}.")
+
+    return redirect('user_management')
+
+@login_required
+def delete_user(request, pk):
+    if not request.user.is_admin:
+        messages.error(request, "Permission Denied.")
+        return redirect('dashboard')
+
+    User = get_user_model()
+    user_to_delete = get_object_or_404(User, pk=pk)
+
+    if user_to_delete.is_admin:
+        messages.error(request, "Admin users are protected and cannot be deleted.")
+        return redirect('user_management')
+
+    if user_to_delete == request.user:
+        messages.error(request, "You cannot delete your own account.")
+        return redirect('user_management')
+
+    if request.method == 'POST':
+        username = user_to_delete.username
+        user_to_delete.delete()
+        messages.success(request, f"User {username} deleted successfully.")
+
     return redirect('user_management')
 
 @login_required

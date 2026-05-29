@@ -91,7 +91,7 @@
                         <tr>
                             <td>{{ item.batch }}</td>
                             <td>
-                                <span class="badge {% if item.status == 'Defective' %}bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25{% else %}bg-success bg-opacity-10 text-success border border-success border-opacity-25{% endif %} px-3 py-2 rounded-pill" style="font-weight: 600; font-size: 0.8rem;">
+                                <span class="badge {% if item.status == 'Defective' %}bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25{% elif item.status == 'Non-Defective' %}bg-success bg-opacity-10 text-success border border-success border-opacity-25{% else %}bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25{% endif %} px-3 py-2 rounded-pill" style="font-weight: 600; font-size: 0.8rem;">
                                     {{ item.status }}
                                 </span>
                             </td>

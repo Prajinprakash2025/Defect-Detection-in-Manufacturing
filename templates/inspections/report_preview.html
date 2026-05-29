@@ -99,9 +99,13 @@
                                     <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
                                         <i class="fas fa-circle-xmark me-1"></i>Defective
                                     </span>
-                                {% else %}
+                                {% elif item.status == 'Non-Defective' %}
                                     <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
                                         <i class="fas fa-circle-check me-1"></i>Passed
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                                        <i class="fas fa-hourglass-half me-1"></i>Pending
                                     </span>
                                 {% endif %}
                             </td>

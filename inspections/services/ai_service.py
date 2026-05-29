@@ -14,6 +14,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 MODEL_PATH = os.path.join(BASE_DIR, 'ml_models', 'defect_classifier.pkl')
 
 IMG_SIZE = 224
+DEFECT_PROB_THRESHOLD = 0.50
 
 # Singleton caches
 _CACHED_MODEL_DATA = None
@@ -171,7 +172,7 @@ def detect_defect(image_path):
             ai_backend = "sklearn_mlp"
 
         # ── Decision Logic ────────────────────────────────────────
-        if defective_prob > 0.55:
+        if defective_prob >= DEFECT_PROB_THRESHOLD:
             label = 'Physical Crack Detected'
             is_def = True
             conf = defective_prob
